@@ -1,0 +1,8 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="7" fill="#F6F1E7"/>
+  <!-- A question mark whose dot has branched into two: "then what?" as a story tree -->
+  <path d="M10.5 11.5c0-3.2 2.5-5.5 5.5-5.5s5.5 2.2 5.5 5.2c0 2.6-1.8 3.8-3.6 4.9-1.2.7-1.9 1.5-1.9 3.1V20" fill="none" stroke="#8C600A" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M16 20.5 11.8 25M16 20.5 20.2 25" stroke="#D9CBA0" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="11.5" cy="25.5" r="2" fill="#D9A441"/>
+  <circle cx="20.5" cy="25.5" r="2" fill="#D9A441"/>
+</svg>
