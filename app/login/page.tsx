@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           {ERRORS[error]}
         </p>
       )}
-      <LoginForm next={safeNextPath(next)} turnstileSiteKey={env.turnstileSiteKey} nonce={nonce} />
+      <LoginForm next={safeNextPath(next)} turnstileSiteKey={env.turnstileSiteKey} nonce={nonce} emailEnabled={env.emailSignIn} />
     </div>
   );
 }

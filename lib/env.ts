@@ -9,6 +9,8 @@ export const env = {
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? "",
   siteUrl: (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, ""),
   turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "",
+    // Set EMAIL_SIGNIN=off to offer Google sign-in only (for example before an email sender is set up).
+    emailSignIn: process.env.EMAIL_SIGNIN !== "off",
   isProduction: process.env.NODE_ENV === "production",
 };
 

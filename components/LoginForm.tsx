@@ -5,7 +5,7 @@ import type { FormState } from "@/lib/action-utils";
 import { BotFields } from "@/components/BotFields";
 import { Turnstile } from "@/components/Turnstile";
 
-export function LoginForm({ next, turnstileSiteKey, nonce }: { next: string; turnstileSiteKey: string; nonce: string }) {
+export function LoginForm({ next, turnstileSiteKey, nonce, emailEnabled }: { next: string; turnstileSiteKey: string; nonce: string; emailEnabled?: boolean }) {
   const [state, action, pending] = useActionState<FormState, FormData>(sendMagicLink, {});
 
   if (state.ok) {
@@ -17,6 +17,7 @@ export function LoginForm({ next, turnstileSiteKey, nonce }: { next: string; tur
   }
 
   return (
+    
     <div className="space-y-5">
       {/* A normal form post to our own server, which starts Google sign-in. */}
       <form action="/auth/google" method="post">
@@ -31,6 +32,8 @@ export function LoginForm({ next, turnstileSiteKey, nonce }: { next: string; tur
           Continue with Google
         </button>
       </form>
+      {emailEnabled && 
+      <>
       <div className="flex items-center gap-3 text-xs text-faint">
         <span className="h-px flex-1 bg-black/10" /> or <span className="h-px flex-1 bg-black/10" />
       </div>
@@ -62,6 +65,8 @@ export function LoginForm({ next, turnstileSiteKey, nonce }: { next: string; tur
           {pending ? "Sending…" : "Email me a sign-in link"}
         </button>
       </form>
+      </>
+}
       {state.error && (
         <p role="alert" className="text-sm text-red-800">
           {state.error}

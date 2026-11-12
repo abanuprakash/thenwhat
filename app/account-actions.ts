@@ -22,6 +22,7 @@ const hash = (s: string) => createHash("sha256").update(s).digest("hex").slice(0
  */
 export async function sendMagicLink(_: FormState, formData: FormData): Promise<FormState> {
   const sent = { ok: "If that address can receive email, a sign-in link is on its way. Open it in this browser." };
+  if (!env.emailSignIn) return { error: "Email sign-in is switched off for now. Please continue with Google." };
   if (looksLikeBot(formData)) return sent;
 
   const parsed = emailSchema.safeParse(formData.get("email"));
