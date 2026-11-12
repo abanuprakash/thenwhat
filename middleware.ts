@@ -18,7 +18,7 @@ const TURNSTILE = "https://challenges.cloudflare.com";
  * Content Security Policy with a fresh nonce per request. The browser may only connect to our
  * own domain (plus Cloudflare's bot check, if switched on): it never talks to the database.
  */
-function buildCsp(nonce: string, https: boolean) {
+function buildCsp(nonce: string, https: boolean, supabaseOrigin: string) {
   const dev = process.env.NODE_ENV === "development";
   const turnstile = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
   return [
@@ -30,7 +30,9 @@ function buildCsp(nonce: string, https: boolean) {
     `connect-src 'self'${turnstile ? ` ${TURNSTILE}` : ""}`,
     `frame-src ${turnstile ? TURNSTILE : "'none'"}`,
     `frame-ancestors 'none'`,
-    `form-action 'self' https://accounts.google.com`,
+        // Google sign-in posts to our server, which redirects to Supabase, which redirects to Google.
+    // Browsers check every hop of a form's redirects against form-action, so both must be listed.
+    `form-action 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://accounts.google.com`,
     `base-uri 'self'`,
     `object-src 'none'`,
     `worker-src 'self' blob:`,
@@ -57,7 +59,7 @@ export async function middleware(request: NextRequest) {
   const key = process.env.SUPABASE_ANON_KEY ?? "";
 
   const nonce = btoa(crypto.randomUUID());
-  const csp = buildCsp(nonce, request.nextUrl.protocol === "https:");
+  const csp = buildCsp(nonce, request.nextUrl.protocol === "https:", url);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
