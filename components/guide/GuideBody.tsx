@@ -242,8 +242,8 @@ export function GuideBody() {
         ]} />
       </Chapter>
       <Chapter n={13} id="footer" title="Around the story: footer and story pages" line="Every page ends the same way: with a few more stories about us.">
-        <p>Every page ends with a <strong className="font-semibold text-ink">footer</strong>: the Then What logo and tagline, links to this guide, About us, Changelog, Pricing, Privacy policy and Terms, the line <em>© 2026 Then What. Every story belongs to the people who wrote it.</em>, and <em>Vimalan and his team, Chennai · Made in India</em>, where <em>India</em> gently fades to <em>Tamil Nadu</em> and back (it stays still if you&apos;ve asked your device for less motion).</p>
-        <GuideClip src="/media/guide/footer-clip.mp4" label="Clip: the footer, with India fading to Tamil Nadu" width={1100} height={330} />
+        <p>Every page ends with a dark <strong className="font-semibold text-ink">footer</strong>, under a thin gold thread: the Then What logo and tagline, links to this guide, About us, Changelog, Pricing, Privacy policy and Terms, the line <em>© 2026 Then What. Every story belongs to the people who wrote it.</em>, and <em>Vimalan &amp; Team, Chennai · Made in India</em>, where <em>India</em> rolls over to <em>Tamil Nadu</em> and back, underlined in gold as each one arrives (both sit still, side by side, if you&apos;ve asked your device for less motion).</p>
+        <GuideClip src="/media/guide/footer-clip.mp4" label="Clip: the footer, with India rolling over to Tamil Nadu" width={1100} height={330} />
         <p>The pages behind those links are written like the stories themselves: numbered chapters along a gold path, each opening with a one-line story beat, then the plain facts.</p>
         <GuideTable head={["Page", "Title on the page", "What it tells you"]} rows={[
           [<>About us</>, <><em>Once upon a line</em></>, <>The idea, branching, voting, invite-only writing, and who makes Then What. Ends with <em>Start reading</em> and <em>How to become an author</em>.</>],

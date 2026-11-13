@@ -16,6 +16,8 @@ export default {
         muted: "#6B6459",
         faint: "#736A5D",
         line: "#D9CBA0",
+        // Text on ink (the footer): dusk 9.6:1, dusk-faint 6.4:1.
+        dusk: { DEFAULT: "#C9BFAE", faint: "#A79C8A" },
         gold: { DEFAULT: "#8C600A", dark: "#704C06", soft: "#D9A441", edge: "#D9C48A" },
       },
       fontFamily: {
