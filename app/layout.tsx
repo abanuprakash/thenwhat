@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { Footer } from "@/components/Footer";
 import { SetupNotice } from "@/components/SetupNotice";
 import { VercelInsights } from "@/components/VercelInsights";
 import { ConnectionNotice } from "@/components/ConnectionNotice";
@@ -37,6 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Header viewer={viewer} />
         <ConnectionNotice />
         <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">{isConfigured ? children : <SetupNotice />}</main>
+        <Footer />
         <BottomNav role={viewer?.profile.role ?? null} handle={viewer?.profile.handle ?? null} />
         <Toaster />
         {isConfigured && <TourHost role={viewer?.profile.role ?? "guest"} seen={viewer ? (viewer.profile.tours_seen ?? []) : null} />}

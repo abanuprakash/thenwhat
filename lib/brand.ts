@@ -36,3 +36,18 @@ export const SPARKS = [
 
 /** Gentle words for the loading screens, so waiting feels part of the story. */
 export const PAGE_TURNS = ["Turning the page…", "Finding where we left off…", "Following the thread…"];
+
+/** Who runs Then What, for the footer, About, Privacy and Terms. */
+export const OPERATOR = {
+  by: "Vimalan and his team",
+  city: "Chennai",
+  /** The places the footer fades between: "Made in India", "Made in Tamil Nadu". */
+  madeIn: ["India", "Tamil Nadu"],
+  /**
+   * TODO before launch: the public address for privacy requests, account deletion and questions.
+   * Until it's set, the legal pages say an address is coming instead of showing a link.
+   */
+  contactEmail: "",
+  /** Shown as "Last updated" on Privacy and Terms. Change it whenever either page changes. */
+  legalUpdated: "13 November 2026",
+};

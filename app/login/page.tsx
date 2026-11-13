@@ -55,6 +55,15 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
         <p className="mt-4 px-2 text-center text-[11px] leading-relaxed text-faint">
           We only use Google to confirm it&apos;s you. Your email stays private: it never appears on your profile, and we never post anything.
+          By continuing, you agree to our{" "}
+          <Link href="/terms" className="font-semibold text-faint underline decoration-black/20 underline-offset-2 hover:text-gold">
+            house rules
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="font-semibold text-faint underline decoration-black/20 underline-offset-2 hover:text-gold">
+            privacy policy
+          </Link>
+          .
         </p>
         <p className="mt-3 text-center text-xs">
           <Link href="/" className="font-semibold text-gold hover:text-gold-dark">
