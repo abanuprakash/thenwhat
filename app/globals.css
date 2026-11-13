@@ -39,6 +39,9 @@ a { @apply text-gold hover:text-gold-dark; transition: color var(--dur-fast) var
 @keyframes sb-draw { from { stroke-dashoffset: var(--len, 200); } to { stroke-dashoffset: 0; } }
 @keyframes sb-ring { 0% { opacity: 0.45; transform: scale(1); } 100% { opacity: 0; transform: scale(2.1); } }
 @keyframes sb-shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+@keyframes sb-icon-draw { from { stroke-dasharray: 1; stroke-dashoffset: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; } }
+@keyframes sb-icon-pop { 0% { opacity: 0; transform: scale(0.2); } 65% { opacity: 1; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes sb-icon-letgo { 0% { transform: scale(1); } 45% { transform: scale(0.86); } 100% { transform: scale(1); } }
 @keyframes sb-reveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
 @layer utilities {
@@ -117,12 +120,26 @@ a { @apply text-gold hover:text-gold-dark; transition: color var(--dur-fast) var
 .nav-item[data-on] .nav-icon { transform: translateY(-1px); }
 .nav-item:active .nav-icon { transform: scale(0.9); transition-duration: var(--dur-fast); }
 .nav-fill, .nav-leaf { transition: opacity var(--dur-base) var(--ease-soft), fill var(--dur-base) var(--ease-soft); }
+/* An icon rebuilds itself as its tab becomes active: lines draw, parts pop in, then the fill settles.
+   The dash styles only exist during the animation (fill-mode backwards), so the resting icon is plain. */
+.ic-pop { transform-box: fill-box; transform-origin: center; }
+.nav-item[data-on] .ic-draw { animation: sb-icon-draw 380ms var(--ease-out) var(--d, 0ms) backwards; }
+.nav-item[data-on] .ic-pop { animation: sb-icon-pop 340ms var(--ease-out) var(--d, 0ms) backwards; }
+.nav-item[data-on] .nav-fill { transition-delay: 220ms; }
+/* The tab you just left lets go with a small exhale. */
+.nav-item[data-leaving] svg { animation: sb-icon-letgo 320ms var(--ease-soft); }
 /* The Write button: a raised gold disc; the plus turns a quarter as you press it, and a soft ring shows while you're writing. */
 .nav-fab {
   box-shadow: 0 6px 14px -6px rgba(112, 76, 6, 0.55), 0 0 0 4px #F6F1E7;
   transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-base) var(--ease-soft), background-color var(--dur-fast) var(--ease-soft);
 }
 .nav-plus { transition: transform var(--dur-slow) var(--ease-out); }
+/* Arriving at the writing screen: one soft ring ripples out from the disc. */
+.nav-fab { position: relative; }
+.nav-fab[data-on]::after {
+  content: ""; position: absolute; inset: 0; border-radius: 9999px; border: 2px solid #D9A441;
+  animation: sb-ring 640ms var(--ease-out) 80ms both; pointer-events: none;
+}
 .nav-item:hover .nav-fab { background-color: #704C06; }
 .nav-item:active .nav-fab { transform: scale(0.92); box-shadow: 0 2px 6px -3px rgba(112, 76, 6, 0.5), 0 0 0 4px #F6F1E7; }
 .nav-item:active .nav-plus { transform: rotate(90deg); }

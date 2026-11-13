@@ -44,6 +44,15 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
   useEffect(() => setPending(null), [path]);
   const active = pending ?? routeActive;
 
+  // The tab that just stopped being active gets a short "let go" movement.
+  const previous = useRef(active);
+  const [leaving, setLeaving] = useState<Key | null>(null);
+  useEffect(() => {
+    const was = previous.current;
+    previous.current = active;
+    if (was && was !== active) setLeaving(was);
+  }, [active]);
+
   // ── Sliding marker ────────────────────────────────────────────────────────
   const navRef = useRef<HTMLElement>(null);
   const refs = useRef(new Map<Key, HTMLAnchorElement>());
@@ -163,6 +172,8 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
             {...common}
             className={`nav-item relative z-[1] flex min-h-[52px] min-w-[64px] flex-col items-center justify-center gap-[5px] px-2 text-[11px] font-semibold ${on ? "text-ink" : "text-faint"} hover:text-ink`}
             data-on={on || undefined}
+            data-leaving={leaving === item.key || undefined}
+            onAnimationEnd={(e) => e.animationName === "sb-icon-letgo" && setLeaving(null)}
           >
             <span className="nav-icon flex h-[30px] items-center">
               <Icon name={item.key} on={on} />
@@ -175,51 +186,63 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
   );
 }
 
-/** 20px line icons; the active one fills in softly. */
+/**
+ * 20px line icons. When a tab becomes active its icon rebuilds itself: lines draw in
+ * (`ic-draw`, pathLength 1), small parts pop into place (`ic-pop`), then the soft fill
+ * arrives (`nav-fill`). `--d` staggers the pieces; the whole build stays under 600ms.
+ */
 function Icon({ name, on }: { name: Exclude<Key, "write">; on: boolean }) {
   const fill = { fill: "currentColor", className: "nav-fill", style: { opacity: on ? 0.16 : 0 } };
   const line = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
+  const draw = (d: number) => ({ ...line, pathLength: 1, className: "ic-draw", style: { "--d": `${d}ms` } as React.CSSProperties });
+  const pop = (d: number) => ({ className: "ic-pop", style: { "--d": `${d}ms` } as React.CSSProperties });
   switch (name) {
     case "home":
       return (
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" className="overflow-visible">
           <path d="M3 9.2 10 3.5l7 5.7V17h-4.6v-4.4H7.6V17H3z" {...fill} />
-          <path d="M3 9.2 10 3.5l7 5.7V17h-4.6v-4.4H7.6V17H3z" {...line} />
+          {/* Roof first, then the walls and door */}
+          <path d="M3 9.2 10 3.5l7 5.7" {...draw(0)} />
+          <path d="M17 9.2V17h-4.6v-4.4H7.6V17H3V9.2" {...draw(140)} />
         </svg>
       );
     case "tree":
       return (
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-          <g {...line}>
-            <path d="M10 4.5v4.5M10 9 5.2 15M10 9l4.8 6" />
-          </g>
-          <g fill="currentColor">
-            <circle cx="10" cy="3.4" r="2" />
-            <circle cx="5" cy="15.6" r="2" />
-            <circle cx="15" cy="15.6" r="2" className={`nav-leaf ${on ? "fill-gold" : ""}`} />
-          </g>
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" className="overflow-visible">
+          {/* The first line, then the trunk, then two branches grow and their lines appear */}
+          <circle cx="10" cy="3.4" r="2" fill="currentColor" {...pop(0)} />
+          <path d="M10 5.4V9" {...draw(80)} />
+          <path d="M10 9 5.9 14" {...draw(180)} />
+          <path d="M10 9l4.1 5" {...draw(180)} />
+          <circle cx="5" cy="15.6" r="2" fill="currentColor" {...pop(320)} />
+          <circle cx="15" cy="15.6" r="2" {...pop(400)} className={`ic-pop nav-leaf ${on ? "fill-gold" : "fill-current"}`} />
         </svg>
       );
     case "profile":
       return (
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" className="overflow-visible">
           <circle cx="10" cy="7" r="3.4" {...fill} />
-          <circle cx="10" cy="7" r="3.4" {...line} />
-          <path d="M3.8 17c.8-3.2 3.3-5 6.2-5s5.4 1.8 6.2 5" {...line} />
+          <path d="M10 3.6a3.4 3.4 0 1 1 0 6.8a3.4 3.4 0 1 1 0-6.8z" {...draw(0)} />
+          <path d="M3.8 17c.8-3.2 3.3-5 6.2-5s5.4 1.8 6.2 5" {...draw(160)} />
         </svg>
       );
     case "dashboard":
       return (
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-          <g {...fill}>
-            <rect x="3" y="3" width="6" height="7" rx="1.2" />
-            <rect x="11" y="10" width="6" height="7" rx="1.2" />
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" className="overflow-visible">
+          {/* Tiles land one after another */}
+          <g {...pop(0)}>
+            <rect x="3" y="3" width="6" height="7" rx="1.2" {...fill} />
+            <rect x="3" y="3" width="6" height="7" rx="1.2" {...line} />
           </g>
-          <g {...line}>
-            <rect x="3" y="3" width="6" height="7" rx="1.2" />
-            <rect x="11" y="3" width="6" height="5" rx="1.2" />
-            <rect x="11" y="10" width="6" height="7" rx="1.2" />
-            <rect x="3" y="12" width="6" height="5" rx="1.2" />
+          <g {...pop(70)}>
+            <rect x="11" y="3" width="6" height="5" rx="1.2" {...line} />
+          </g>
+          <g {...pop(140)}>
+            <rect x="11" y="10" width="6" height="7" rx="1.2" {...fill} />
+            <rect x="11" y="10" width="6" height="7" rx="1.2" {...line} />
+          </g>
+          <g {...pop(210)}>
+            <rect x="3" y="12" width="6" height="5" rx="1.2" {...line} />
           </g>
         </svg>
       );
