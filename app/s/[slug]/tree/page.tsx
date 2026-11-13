@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAncestors, getStoryBySlug, getSubtree } from "@/lib/queries";
 import { TreeMap } from "@/components/TreeMap";
+import { PageTour } from "@/components/Tour";
 
 export const metadata: Metadata = { title: "Story tree" };
 
@@ -27,6 +28,7 @@ export default async function TreePage({
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 pb-24 pt-8 desk:px-6">
+      <PageTour id="tree" />
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link href={`/s/${slug}/${currentId}`} className="text-[13px] font-medium">
@@ -34,7 +36,7 @@ export default async function TreePage({
           </Link>
           <h1 className="mt-2 font-serif text-[22px] font-semibold">{story.title} · full tree</h1>
         </div>
-        <div className="flex items-center gap-[6px] text-xs font-medium text-faint">
+        <div className="flex items-center gap-[6px] text-xs font-medium text-faint" data-tour="tree-legend">
           <span aria-hidden="true" className="inline-block h-[10px] w-[10px] rounded-full bg-gold" /> your current path
         </div>
       </div>

@@ -145,7 +145,7 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
 
     if (item.key === "write") {
       return (
-        <Link key={item.key} {...common} className="nav-item group relative z-[1] -mt-[18px] flex min-w-[64px] flex-col items-center gap-[5px] text-[11px] font-semibold text-ink hover:text-ink">
+        <Link key={item.key} {...common} data-tour="start-story" className="nav-item group relative z-[1] -mt-[18px] flex min-w-[64px] flex-col items-center gap-[5px] text-[11px] font-semibold text-ink hover:text-ink">
           <span className="nav-fab flex h-[46px] w-[46px] items-center justify-center rounded-full bg-gold text-white" data-on={on || undefined}>
             <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" className="nav-plus">
               <path d="M10 3.5v13M3.5 10h13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

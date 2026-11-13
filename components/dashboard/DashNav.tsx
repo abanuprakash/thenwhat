@@ -18,12 +18,12 @@ const TABS = [
 export function DashNav({ isAdmin }: { isAdmin: boolean }) {
   const path = usePathname();
   return (
-    <nav aria-label="Dashboard sections" className="-mx-4 overflow-x-auto px-4 desk:mx-0 desk:px-0">
+    <nav aria-label="Dashboard sections" data-tour="dash-nav" className="-mx-4 overflow-x-auto px-4 desk:mx-0 desk:px-0">
       <ul className="flex min-w-max gap-1 border-b border-black/[.08]">
-        {TABS.filter((t) => !t.admin || isAdmin).map((t) => {
+        {TABS.filter((t) => !t.admin || isAdmin).map((t, i, shown) => {
           const active = t.exact ? path === t.href : path === t.href || path.startsWith(t.href + "/");
           return (
-            <li key={t.href}>
+            <li key={t.href} data-tour={t.admin && !shown[i - 1]?.admin ? "dash-admin" : undefined}>
               <Link
                 href={t.href}
                 aria-current={active ? "page" : undefined}

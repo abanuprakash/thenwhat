@@ -21,7 +21,7 @@ export function NewStoryForm() {
   return (
     <form action={action}>
       <BotFields />
-      <div className="mb-5">
+      <div className="mb-5" data-tour="story-title">
         <label htmlFor="title" className="eyebrow mb-2 block">
           Title
         </label>
@@ -37,7 +37,7 @@ export function NewStoryForm() {
         {fe.title && <p className="mt-1 text-xs text-red-800">{fe.title[0]}</p>}
       </div>
 
-      <fieldset className="mb-5">
+      <fieldset className="mb-5" data-tour="story-genre">
         <legend className="eyebrow mb-2">Genre</legend>
         <div className="flex flex-wrap gap-2">
           {GENRES.map((g) => (
@@ -61,7 +61,7 @@ export function NewStoryForm() {
         </div>
       </fieldset>
 
-      <div>
+      <div data-tour="story-opening">
         <label htmlFor="firstLine" className="eyebrow mb-2 block">
           The first line
         </label>

@@ -8,6 +8,7 @@ import { getCapacity, getMyPendingKinds } from "@/lib/dashboard-queries";
 import { describeCapacity } from "@/lib/limits";
 import { Composer } from "@/components/Composer";
 import { LimitNotice } from "@/components/LimitNotice";
+import { PageTour } from "@/components/Tour";
 
 export const metadata: Metadata = { title: "Then what?" };
 
@@ -27,13 +28,14 @@ export default async function WritePage({ params }: { params: Promise<{ parentId
 
   return (
     <div className="container-narrow">
+      <PageTour id="write" />
       <Link href={`/s/${story.slug}/${parentId}`} className="text-[13px] font-medium">
         ← Back
       </Link>
       <h1 className="mb-5 mt-[14px] font-serif text-2xl font-semibold">
         Then what<span className="text-gold">?</span>
       </h1>
-      <div className="panel mb-5 px-5 py-[18px]">
+      <div className="panel mb-5 px-5 py-[18px]" data-tour="so-far">
         <div className="eyebrow mb-2 !text-[10px]">So far</div>
         <p className="mb-[6px] font-serif text-base leading-[1.55] text-ink">{parent.text}</p>
         <span className="text-[11px] font-medium text-faint">by @{parent.author?.handle}</span>
@@ -50,7 +52,7 @@ export default async function WritePage({ params }: { params: Promise<{ parentId
       ) : (
         <>
           {cap && (cap.branch_limit !== null || cap.max_depth !== null) && (
-            <ul className="mb-4 space-y-1 text-xs text-muted" aria-label="Limits for this line">
+            <ul className="mb-4 space-y-1 text-xs text-muted" aria-label="Limits for this line" data-tour="line-limits">
               {cap.max_depth !== null && (
                 <li>
                   {cap.nextIsFinal ? (

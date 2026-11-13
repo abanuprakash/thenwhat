@@ -106,7 +106,7 @@ export function TreeMap({
   }, [lines, pathIds, currentId, slug, startDepth]);
 
   return (
-    <div className="card h-[70vh] min-h-[420px] overflow-hidden">
+    <div className="card h-[70vh] min-h-[420px] overflow-hidden" data-tour="tree-canvas">
       <ReactFlow
         nodes={nodes}
         edges={edges}

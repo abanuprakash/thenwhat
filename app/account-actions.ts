@@ -7,7 +7,7 @@ import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
 import { getViewer } from "@/lib/queries";
-import { emailSchema, handleSchema, onboardingSchema, profileSchema } from "@/lib/schemas";
+import { emailSchema, handleSchema, onboardingSchema, profileSchema, tourKeySchema } from "@/lib/schemas";
 import { clientIp, limit, looksLikeBot, TOO_MANY } from "@/lib/security";
 import { safeNextPath } from "@/lib/sanitize";
 import { fieldErrors, friendly, requireViewer, type FormState } from "@/lib/action-utils";
@@ -181,4 +181,31 @@ async function removeOldAvatars(userId: string, keepPath: string | null) {
   const { data } = await supabase.storage.from("avatars").list(userId, { limit: 100 });
   const old = (data ?? []).map((f) => `${userId}/${f.name}`).filter((p) => p !== keepPath);
   if (old.length) await supabase.storage.from("avatars").remove(old);
+}
+
+// ── Tours ───────────────────────────────────────────────────────────────
+
+/** Remember that the signed-in person has seen a tour (guests keep this in their browser). */
+export async function markTourSeen(key: string): Promise<{ error?: string }> {
+  const parsed = tourKeySchema.safeParse(key);
+  if (!parsed.success) return { error: "That tour doesn't exist." };
+  const viewer = await getViewer();
+  if (!viewer) return {};
+  if (!(await limit("tourPerUser", viewer.id))) return { error: TOO_MANY };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("mark_tour_seen", { p_key: parsed.data });
+  if (error) return { error: friendly(error) };
+  // No revalidatePath: nothing on the page changes, and the next page load reads the new list.
+  return {};
+}
+
+/** Show every tour again, once, as you move around. */
+export async function resetTours(): Promise<{ error?: string }> {
+  const viewer = await getViewer();
+  if (!viewer) return {};
+  if (!(await limit("tourPerUser", viewer.id))) return { error: TOO_MANY };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reset_tours");
+  if (error) return { error: friendly(error) };
+  return {};
 }

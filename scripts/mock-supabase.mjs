@@ -19,7 +19,7 @@ const now = Date.now();
 const iso = (hoursAgo) => new Date(now - hoursAgo * 3600e3).toISOString();
 
 const profiles = [
-  { id: uuid(900), handle: "noemi_vance", display_name: "Noemi Vance", bio: "Writes in the margins.", avatar_url: null, role: "author", invited_by: null, created_at: iso(500), onboarded: process.env.MOCK_ONBOARDED !== "0" },
+  { id: uuid(900), handle: "noemi_vance", display_name: "Noemi Vance", bio: "Writes in the margins.", avatar_url: null, role: "author", invited_by: null, created_at: iso(500), onboarded: process.env.MOCK_ONBOARDED !== "0", tours_seen: [] },
   { id: uuid(901), handle: "kai_ondo", display_name: "Kai Ondo", bio: null, avatar_url: null, role: "author", invited_by: uuid(900), created_at: iso(400) },
 ];
 const P = profiles[0].id, K = profiles[1].id;
@@ -146,6 +146,17 @@ http.createServer(async (req, res) => {
     Object.assign(settings, { max_branches_per_line: a.p_max_branches, max_depth: a.p_max_depth, lines_per_hour: a.p_lines_per_hour });
     if (typeof a.p_live_updates === "boolean") settings.live_updates = a.p_live_updates;
     if (Number.isInteger(a.p_poll_seconds)) settings.poll_seconds = a.p_poll_seconds;
+    return send(200, null);
+  }
+  // Tours: remember what the signed-in demo user has seen.
+  if (p === "/rest/v1/rpc/mark_tour_seen") {
+    const { p_key } = JSON.parse(body || "{}");
+    const me = profiles[0];
+    if (!me.tours_seen.includes(p_key)) me.tours_seen.push(p_key);
+    return send(200, null);
+  }
+  if (p === "/rest/v1/rpc/reset_tours") {
+    profiles[0].tours_seen = [];
     return send(200, null);
   }
   if (p === "/rest/v1/rpc/story_poll") {

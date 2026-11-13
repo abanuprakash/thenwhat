@@ -4,6 +4,7 @@ import { NewStoryForm } from "@/components/NewStoryForm";
 import { getSettings } from "@/lib/dashboard-queries";
 import { getEntitlements, hasFeature } from "@/lib/queries";
 import { Locked } from "@/components/Locked";
+import { PageTour } from "@/components/Tour";
 
 export const metadata: Metadata = { title: "Start a story" };
 
@@ -15,6 +16,7 @@ export default async function NewStoryPage() {
   const d = settings.max_depth;
   return (
     <div className="container-narrow">
+      <PageTour id="new" />
       <Link href="/" className="text-[13px] font-medium">
         ← Back to home
       </Link>

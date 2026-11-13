@@ -69,7 +69,7 @@ export function FeedTabs({ tabs, active, children }: { tabs: Tab[]; active: stri
 
   return (
     <>
-      <nav ref={navRef} aria-label="Story lists" className="feed-tabs relative mb-2 flex gap-[26px] overflow-x-auto border-b border-black/[.08]">
+      <nav ref={navRef} data-tour="feed-tabs" aria-label="Story lists" className="feed-tabs relative mb-2 flex gap-[26px] overflow-x-auto border-b border-black/[.08]">
         {tabs.map((t) => (
           <Link
             key={t.key}

@@ -27,6 +27,8 @@ import { MarkCompleteButton, ReportButton } from "@/components/LineActions";
 import { LimitNotice } from "@/components/LimitNotice";
 import { getCapacity, getMyPendingKinds } from "@/lib/dashboard-queries";
 import { describeCapacity } from "@/lib/limits";
+import { PageTour } from "@/components/Tour";
+import { InfoTip } from "@/components/InfoTip";
 
 type Props = {
   params: Promise<{ slug: string; lineId: string }>;
@@ -86,6 +88,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 pb-24 pt-8 desk:px-6">
       {/* Live updates: only here, on the reading page, and only when switched on in Dashboard → Settings. */}
+      <PageTour id="reading" />
       {live.on && <LiveRefresh storyId={story.id} lineId={lineId} seconds={live.seconds} />}
 
       {!active && (
@@ -97,7 +100,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
       )}
 
       <div className="mb-[18px] flex flex-wrap items-center justify-between gap-4">
-        <nav aria-label="Your path through the story" className="flex flex-wrap items-center gap-[6px]">
+        <nav aria-label="Your path through the story" data-tour="path" className="flex flex-wrap items-center gap-[6px]">
           {ancestors.map((a, i) => {
             const current = a.id === lineId;
             return (
@@ -117,16 +120,18 @@ export default async function ReadingPage({ params, searchParams }: Props) {
           })}
         </nav>
         <div className="flex items-center gap-[10px]">
-          <Link href={`/s/${slug}/${lineId}/full`} className="btn-secondary">
+          <Link href={`/s/${slug}/${lineId}/full`} data-tour="read-full" className="btn-secondary">
             Read full story from here
           </Link>
-          <FollowButton storyId={story.id} initial={following} signedIn={!!viewer} allowed={can("follow")} variant="button" />
+          <span data-tour="follow-story" className="inline-flex">
+            <FollowButton storyId={story.id} initial={following} signedIn={!!viewer} allowed={can("follow")} variant="button" />
+          </span>
         </div>
       </div>
 
       <div className="flex flex-wrap items-start gap-7">
         <div className="min-w-0 flex-1 basis-[340px]">
-          <article key={line.id} className="card animate-fade px-5 py-6 desk:px-7 desk:py-[26px]">
+          <article key={line.id} data-tour="current-line" className="card animate-fade px-5 py-6 desk:px-7 desk:py-[26px]">
             {line.status === "pending" && (
               <p role="status" className="mb-3 rounded-[2px] bg-cream px-2 py-1 text-xs text-ink">
                 <strong>Waiting for approval.</strong> Only you, the story&apos;s starter and admins can see this line until it&apos;s approved.
@@ -168,7 +173,9 @@ export default async function ReadingPage({ params, searchParams }: Props) {
                 )}
                 {published && can("report") && !isMine && <ReportButton lineId={line.id} signedIn={!!viewer} />}
                 {published && (
-                  <VoteControl lineId={line.id} up={line.up} down={line.down} mine={myVotes[line.id] ?? 0} signedIn={!!viewer} allowed={can("vote")} />
+                  <span data-tour="line-votes" className="inline-flex">
+                    <VoteControl lineId={line.id} up={line.up} down={line.down} mine={myVotes[line.id] ?? 0} signedIn={!!viewer} allowed={can("vote")} />
+                  </span>
                 )}
               </div>
             </div>
@@ -180,13 +187,17 @@ export default async function ReadingPage({ params, searchParams }: Props) {
             )}
           </article>
 
-          <section className="mt-[22px]" aria-labelledby="branches-heading">
+          <section className="mt-[22px]" aria-labelledby="branches-heading" data-tour="branches">
             <div className="mb-[10px] flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <h2 id="branches-heading" className="eyebrow">
-                Then what<span className="text-gold">?</span> <span className="font-medium normal-case tracking-normal">· ranked by readers</span>
+                Then what<span className="text-gold">?</span> <span className="font-medium normal-case tracking-normal">· ranked by readers</span>{" "}
+                <InfoTip title="How branches are ranked" art="vote" label="how branches are ranked">
+                  By how readers vote, with confidence: plenty of up votes and few down votes ranks highest, so one early vote can&apos;t
+                  carry a line straight to the top.
+                </InfoTip>
               </h2>
               {cap && (cap.branch_limit !== null || cap.max_depth !== null) && (
-                <p className="text-[11px] font-medium text-faint">
+                <p className="flex items-center gap-[2px] text-[11px] font-medium text-faint">
                   {cap.branch_limit !== null && (
                     <>
                       {Math.min(cap.children, cap.branch_limit)} of {cap.branch_limit} branches used
@@ -198,6 +209,11 @@ export default async function ReadingPage({ params, searchParams }: Props) {
                       line {cap.lineNumber} of {cap.max_depth}
                     </>
                   )}
+                  <InfoTip title="Room to grow" art="branches" label="this story's limits">
+                    {cap.branch_limit !== null && <>Each line here can grow {cap.branch_limit} branches. </>}
+                    {cap.max_depth !== null && <>A path can be {cap.max_depth} lines long, and its last line is an ending. </>}
+                    When a line is full, carry on from one of its branches instead.
+                  </InfoTip>
                 </p>
               )}
             </div>
@@ -262,7 +278,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
                     <span />
                   )}
                   {canContinue && (
-                    <Link href={`/write/${lineId}`} className="btn-primary">
+                    <Link href={`/write/${lineId}`} data-tour="write-next" className="btn-primary">
                       Your turn: write what happens
                     </Link>
                   )}
@@ -278,7 +294,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
                       : "Nobody knows what happens next. Yet."}
                 </p>
                 {canContinue && (
-                  <Link href={`/write/${lineId}`} className="btn-primary mt-[6px]">
+                  <Link href={`/write/${lineId}`} data-tour="write-next" className="btn-primary mt-[6px]">
                     Your turn: write what happens
                   </Link>
                 )}
@@ -289,7 +305,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
               <p className="mt-3 text-xs text-faint">The next line written here will be the last on this path.</p>
             )}
             {!writer && cap?.canContinue && (
-              <p className="mt-4 text-xs text-faint">
+              <p className="mt-4 text-xs text-faint" data-tour="become-author">
                 Only verified authors can write.{" "}
                 {viewer ? <Link href="/become-author">How to become one</Link> : <Link href={`/login?next=/s/${slug}/${lineId}`}>Sign in</Link>}
               </p>
@@ -298,7 +314,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
         </div>
 
         <aside className="flex w-full flex-none flex-col gap-[14px] desk:sticky desk:top-20 desk:w-[230px]">
-          <div className="panel border border-black/[.06] p-4">
+          <div className="panel border border-black/[.06] p-4" data-tour="mini-tree">
             <h2 className="eyebrow mb-[10px] !text-[10px]">Your path</h2>
             <MiniTree lines={miniLines} pathIds={pathIds} currentId={lineId} slug={slug} />
             <p className="mt-2 text-[11px] font-medium text-faint">

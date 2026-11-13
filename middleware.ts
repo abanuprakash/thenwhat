@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { normalizeSupabaseUrl } from "@/lib/supabase-url";
-import { PROFILE_COLUMNS } from "@/lib/types";
+import { VIEWER_PROFILE_COLUMNS } from "@/lib/types";
 import { VIEWER_HEADER, encodeViewer } from "@/lib/viewer-header";
 
 // Pages only verified authors (or admins) may open.
@@ -11,7 +11,7 @@ const ADMIN_PATHS = ["/admin", "/dashboard/users", "/dashboard/reports", "/dashb
 // Pages that need any signed-in user.
 const SIGNED_IN_PATHS = ["/me", "/welcome"];
 // Signed-in people who haven't picked a handle yet can still reach these.
-const ONBOARDING_EXEMPT = ["/welcome", "/auth", "/api", "/login", "/pricing"];
+const ONBOARDING_EXEMPT = ["/welcome", "/auth", "/api", "/login", "/pricing", "/about", "/privacy", "/terms", "/changelog"];
 
 const startsWithAny = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(p + "/"));
 
@@ -126,7 +126,7 @@ export async function middleware(request: NextRequest) {
   if (!user) handOver(null);
 
   if (user) {
-    const { data: profile } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", user.id).single();
+    const { data: profile } = await supabase.from("profiles").select(VIEWER_PROFILE_COLUMNS).eq("id", user.id).single();
     handOver(profile ? { id: user.id, email: user.email ?? null, profile } : null);
 
     // First sign-in: choose a name and handle before anything else.

@@ -6,6 +6,7 @@ import type { Settings } from "@/lib/types";
 import { SubmitButton } from "@/components/Pending";
 import { guard, useKeepOnError } from "@/lib/client-action";
 import { FormError } from "@/components/FormError";
+import { InfoTip } from "@/components/InfoTip";
 
 /** A, A1, A2, A11… the way the rules shape a story, for the preview. */
 function previewLevels(branches: number | null, depth: number | null) {
@@ -21,13 +22,14 @@ function previewLevels(branches: number | null, depth: number | null) {
 }
 
 /**
- * What a check interval costs: each check is two function runs on Vercel (middleware + the
- * version route), against the free plan's 1,000,000 a month.
+ * What a check interval costs: one function run on Vercel per check (the middleware skips the
+ * version route), against the free plan's 1,000,000 a month. Readers of the same line share one
+ * answer a second through the CDN, so this is the most it can cost per reader.
  */
 function liveCost(seconds: number) {
   if (!Number.isInteger(seconds) || seconds < 1 || seconds > 300) return null;
   const perHour = Math.round(3600 / seconds);
-  return { perHour, hours: Math.round(1_000_000 / (perHour * 2)) };
+  return { perHour, hours: Math.round(1_000_000 / perHour) };
 }
 
 export function SettingsForm({ settings }: { settings: Settings }) {
@@ -78,8 +80,14 @@ export function SettingsForm({ settings }: { settings: Settings }) {
   return (
     <form action={action} {...keep} className="grid gap-8 desk:grid-cols-[1fr_320px]">
       <div className="space-y-6">
-        <fieldset className="card space-y-5 p-5">
-          <legend className="eyebrow px-1">Story shape</legend>
+        <fieldset className="card space-y-5 p-5" data-tour="settings-shape">
+          <legend className="eyebrow inline-flex items-center gap-1 px-1">
+            Story shape
+            <InfoTip title="How stories grow" art="branches">
+              Branches per line is how many ways a story can carry on from any one line. Lines per path is how long a path can get
+              before its last line becomes the ending. A single story can have its own limits from the Stories tab.
+            </InfoTip>
+          </legend>
           {field(
             "maxBranches",
             "Branches per line",
@@ -100,8 +108,14 @@ export function SettingsForm({ settings }: { settings: Settings }) {
           </p>
         </fieldset>
 
-        <fieldset className="card space-y-3 p-5">
-          <legend className="eyebrow px-1">New lines</legend>
+        <fieldset className="card space-y-3 p-5" data-tour="settings-approval">
+          <legend className="eyebrow inline-flex items-center gap-1 px-1">
+            New lines
+            <InfoTip title="Approval" art="check">
+              When new lines need approval, they wait for the story&apos;s starter or an admin. Until then only the writer, the starter
+              and admins can see them.
+            </InfoTip>
+          </legend>
           <p className="text-xs leading-relaxed text-faint">
             Applies to every story unless its starter (or an admin) picks something else in Stories. Lines written by a
             story&apos;s starter or an admin always publish straight away.
@@ -122,10 +136,16 @@ export function SettingsForm({ settings }: { settings: Settings }) {
           </label>
         </fieldset>
 
-        <fieldset className="card space-y-4 p-5">
-          <legend className="eyebrow px-1">Live updates</legend>
+        <fieldset className="card space-y-4 p-5" data-tour="settings-live">
+          <legend className="eyebrow inline-flex items-center gap-1 px-1">
+            Live updates
+            <InfoTip title="Live updates" art="pulse">
+              Only the reading page checks, and only while it&apos;s open in a visible tab. It reloads when a line it shows changes,
+              not for votes. Everyone reading the same line shares one answer each second.
+            </InfoTip>
+          </legend>
           <p className="text-xs leading-relaxed text-faint">
-            While someone has a story open on the reading page, it checks for new lines and votes and updates itself. No other
+            While someone has a story open on the reading page, it checks for new lines and updates itself when one it shows changes. No other
             page checks, and a story in a hidden tab doesn&apos;t either. Open stories follow a change here at their next check.
           </p>
           <label className="flex items-start gap-3 text-sm text-ink">
@@ -159,8 +179,13 @@ export function SettingsForm({ settings }: { settings: Settings }) {
           </div>
         </fieldset>
 
-        <fieldset className="card space-y-5 p-5">
-          <legend className="eyebrow px-1">Fair use</legend>
+        <fieldset className="card space-y-5 p-5" data-tour="settings-fair">
+          <legend className="eyebrow inline-flex items-center gap-1 px-1">
+            Fair use
+            <InfoTip title="Fair use" art="gauge">
+              A cap per person, per hour, so one person can&apos;t flood a story. Everyone else carries on as normal.
+            </InfoTip>
+          </legend>
           {field(
             "linesPerHour",
             "Lines per author, per hour",

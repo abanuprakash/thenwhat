@@ -270,3 +270,30 @@ do $$ declare r record; begin
   assert not exists (select 1 from public.story_poll('00000000-0000-0000-0000-000000000000')), 'unknown story gives nothing';
 end $$;
 reset role;
+
+------------------------------------------------------------------ tours (20261113000005)
+select pg_temp.as_user('finn');
+set role authenticated;
+select public.mark_tour_seen('reading@author');
+select public.mark_tour_seen('reading@author');   -- twice: still once
+select public.mark_tour_seen('home@author');
+select pg_temp.expect_fail($$ select public.mark_tour_seen('Robert''); drop table x;--@author') $$, 'odd tour names refused');
+select pg_temp.expect_fail($$ select public.mark_tour_seen('home@superuser') $$, 'unknown roles refused');
+do $$ begin
+  assert (select tours_seen from public.profiles where handle = 'finn') = array['reading@author', 'home@author'], 'seen tours kept once, in order';
+end $$;
+select pg_temp.expect_fail($$ update public.profiles set tours_seen = '{}' where handle = 'finn' $$, 'no direct writes');
+select public.reset_tours();
+do $$ begin
+  assert (select cardinality(tours_seen) from public.profiles where handle = 'finn') = 0, 'reset clears them';
+end $$;
+-- The list stays short however many are marked.
+do $$ begin
+  for i in 1 .. 80 loop perform public.mark_tour_seen('tour' || chr(97 + i % 26) || chr(97 + i / 26) || '@reader'); end loop;
+  assert (select cardinality(tours_seen) from public.profiles where handle = 'finn') <= 63, 'capped';
+end $$;
+reset role;
+set role anon;
+select pg_temp.expect_fail($$ select public.mark_tour_seen('home@reader') $$, 'guests keep tours in their browser');
+select pg_temp.expect_fail($$ select tours_seen from public.profiles limit 1 $$, 'guests can''t read the column');
+reset role;
