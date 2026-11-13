@@ -4,9 +4,12 @@ import { checkHandle, completeOnboarding } from "@/app/account-actions";
 import type { FormState } from "@/lib/action-utils";
 import { BotFields } from "@/components/BotFields";
 import { SubmitButton } from "@/components/Pending";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function WelcomeForm({ handle, displayName, next }: { handle: string; displayName: string; next: string }) {
-  const [state, action] = useActionState<FormState, FormData>(completeOnboarding, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(completeOnboarding), {});
+  const keep = useKeepOnError(state);
   const [value, setValue] = useState(handle);
   const [check, setCheck] = useState<{ available: boolean; message: string } | null>(null);
 
@@ -21,13 +24,20 @@ export function WelcomeForm({ handle, displayName, next }: { handle: string; dis
       setCheck(null);
       return;
     }
-    const t = setTimeout(async () => setCheck(await checkHandle(h)), 450);
+    // If the check can't reach us, say nothing: the server checks again when the form is sent.
+    const t = setTimeout(async () => {
+      try {
+        setCheck(await checkHandle(h));
+      } catch {
+        setCheck(null);
+      }
+    }, 450);
     return () => clearTimeout(t);
   }, [value, handle]);
 
   const fe = state.fieldErrors ?? {};
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} {...keep} className="space-y-5">
       <BotFields />
       <input type="hidden" name="next" value={next} />
       <div>
@@ -70,11 +80,7 @@ export function WelcomeForm({ handle, displayName, next }: { handle: string; dis
       <SubmitButton className="btn-primary" disabled={(check !== null && !check.available)} pendingLabel="Saving">
         Start reading
       </SubmitButton>
-      {state.error && (
-        <p role="alert" className="text-sm text-red-800">
-          {state.error}
-        </p>
-      )}
+      <FormError className="text-sm text-red-800">{state.error}</FormError>
     </form>
   );
 }

@@ -125,6 +125,30 @@ All in `app/globals.css` (`@layer components`) or `components/`.
 - **Locked by plan:** `<Locked feature="…" />`, which links to Pricing.
 - **Waiting for approval:** a cream note, "Waiting for approval", visible only to the writer, the story's starter and admins.
 
+## 7b. When things go wrong
+
+Nothing that goes wrong may replace the page, lose what someone typed, or leave a button stuck.
+
+| Situation | What people see | Where |
+|---|---|---|
+| Offline | "The thread snapped" note under the header; "Back on the thread" when it returns | `ConnectionNotice` |
+| A link tapped while offline | The page stays; toast "That page is out of reach" | `ConnectionNotice` |
+| A form that couldn't reach us | A card with the snapped thread: "That didn't reach us. Nothing was saved…"; typed text stays | `guard()` + `FormError` + `useKeepOnError` |
+| Our server failed | The same card with the tangled question mark: "Our side tripped" | `FormError` |
+| A vote or follow that failed | It flips back; toast "Your vote didn't land" / "That star didn't stick" with **Try again** | `safely()` + `toast()` |
+| A confirmation that failed | The dialog stays open, explains, and its button becomes **Try again** | `ConfirmButton error` |
+| A plain post (Google sign-in) offline | Stays put; toast "That can't go anywhere yet" | `NativeForm` |
+| A wrong photo | Checked before upload: size (with the actual MB) and type | `AvatarPicker` |
+| A page that failed to load | "This page lost its thread", Try again / Back to stories, reference code; an offline version | `app/error.tsx`, `app/global-error.tsx` |
+
+Rules:
+- **Say whose fault it is.** "You're offline", "the connection dropped", "something went wrong on our side". Never blame the person for our failure.
+- **Always say what happened to their work:** "Nothing was saved", "nothing changed".
+- **Offer the way forward:** Try again, Back to stories, or wait for the connection.
+- **Drawings** (`components/Illustrations.tsx`): `SnappedThread` for connection problems, `RejoinedThread` for back online, `TangledBranch` for our errors. They animate once and are decorative; the words carry the meaning.
+- **Toasts** are for failures with nowhere else to go (votes, follows, links). One at a time, 7 seconds, `role="alert"`. Never for success.
+- **New client code** that calls a Server Action uses `guard()` (forms) or `safely()` (clicks) from `lib/client-action.ts`, and uncontrolled forms spread `useKeepOnError(state)`.
+
 ## 8. Motion
 
 Motion confirms what you did and helps you notice where things are. It never performs. Tokens are in `app/globals.css`:

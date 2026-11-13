@@ -7,9 +7,11 @@ import { GENRES, type Genre } from "@/lib/types";
 import { LINE_MAX } from "@/lib/schemas";
 import { CharCounter } from "@/components/CharCounter";
 import { ConfirmButton } from "@/components/Confirm";
+import { guard } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function NewStoryForm() {
-  const [state, action] = useActionState<FormState, FormData>(createStory, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(createStory), {});
   const [title, setTitle] = useState("");
   const [genre, setGenre] = useState<Genre>("Sci-fi");
   const [opening, setOpening] = useState("");
@@ -76,6 +78,7 @@ export function NewStoryForm() {
         <div className="mt-[10px] flex items-center justify-between">
           <CharCounter length={len} id="opening-count" />
           <ConfirmButton
+            error={state.error ?? fe.title?.[0] ?? fe.firstLine?.[0]}
             label="Begin the story"
             disabled={!title.trim() || len === 0 || len > LINE_MAX}
             eyebrow={`New ${genre} story`}
@@ -91,11 +94,7 @@ export function NewStoryForm() {
             pendingLabel="Publishing"
           />
         </div>
-        {(state.error || fe.firstLine) && (
-          <p role="alert" className="mt-3 text-sm text-red-800">
-            {state.error ?? fe.firstLine?.[0]}
-          </p>
-        )}
+        <FormError className="mt-3 text-sm text-red-800">{state.error ?? fe.firstLine?.[0]}</FormError>
       </div>
     </form>
   );

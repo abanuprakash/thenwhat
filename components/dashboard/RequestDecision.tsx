@@ -6,6 +6,9 @@ import type { FormState } from "@/lib/action-utils";
 import type { RequestKind } from "@/lib/types";
 import { BusyButton } from "@/components/Pending";
 import { ConfirmButton, type Outcome } from "@/components/Confirm";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { safely } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function RequestDecision({
   requestId,
@@ -18,7 +21,8 @@ export function RequestDecision({
   requester?: string | null;
   storyTitle?: string | null;
 }) {
-  const [state, action] = useActionState<FormState, FormData>(decideRequest, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(decideRequest), {});
+  const keep = useKeepOnError(state);
   const id = (s: string) => `${s}-${requestId}`;
   const Who = requester ? `@${requester}` : "The writer";
   const story = storyTitle ? `“${storyTitle}”` : "this story";
@@ -56,7 +60,7 @@ export function RequestDecision({
   }
 
   return (
-    <form action={action} className="mt-1 space-y-3 border-t border-black/[.06] pt-3">
+    <form action={action} {...keep} className="mt-1 space-y-3 border-t border-black/[.06] pt-3">
       <input type="hidden" name="requestId" value={requestId} />
       <div className="flex flex-wrap items-end gap-3">
         <div>
@@ -89,6 +93,7 @@ export function RequestDecision({
       </p>
       <div className="flex flex-wrap gap-2">
         <ConfirmButton
+          error={state.error ?? state.fieldErrors?.granted?.[0]}
           label="Approve"
           eyebrow={kind === "more_branches" ? "More branches on a line" : "A longer story"}
           title={kind === "more_branches" ? "Give this line more room?" : "Let the story go further?"}
@@ -99,6 +104,7 @@ export function RequestDecision({
           value="yes"
         />
         <ConfirmButton
+          error={state.error ?? state.fieldErrors?.granted?.[0]}
           label="Decline"
           className="btn-secondary"
           eyebrow={kind === "more_branches" ? "More branches on a line" : "A longer story"}
@@ -111,11 +117,7 @@ export function RequestDecision({
           caution
         />
       </div>
-      {(state.error || state.fieldErrors?.granted) && (
-        <p role="alert" className="text-xs text-red-800">
-          {state.error ?? state.fieldErrors?.granted?.[0]}
-        </p>
-      )}
+      <FormError className="text-xs text-red-800">{state.error ?? state.fieldErrors?.granted?.[0]}</FormError>
     </form>
   );
 }
@@ -129,15 +131,11 @@ export function CancelRequestButton({ requestId }: { requestId: string }) {
         className="text-xs font-semibold text-faint hover:text-ink"
         busy={pending}
         pendingLabel="Withdrawing"
-        onClick={() => start(async () => setError((await cancelRequest(requestId)).error))}
+        onClick={() => start(async () => setError((await safely(() => cancelRequest(requestId))).error))}
       >
         Withdraw request
       </BusyButton>
-      {error && (
-        <p role="alert" className="mt-1 text-xs text-red-800">
-          {error}
-        </p>
-      )}
+      <FormError className="mt-1 text-xs text-red-800">{error}</FormError>
     </div>
   );
 }

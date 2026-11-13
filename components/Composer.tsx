@@ -7,9 +7,11 @@ import { Spark } from "@/components/Spark";
 import { LINE_MAX } from "@/lib/schemas";
 import { CharCounter } from "@/components/CharCounter";
 import { SubmitButton } from "@/components/Pending";
+import { guard } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function Composer({ parentId }: { parentId: string }) {
-  const [state, action] = useActionState<FormState, FormData>(writeLine, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(writeLine), {});
   const [text, setText] = useState("");
   const len = text.trim().length;
   const error = state.error ?? state.fieldErrors?.text?.[0];
@@ -39,11 +41,7 @@ export function Composer({ parentId }: { parentId: string }) {
       </div>
       <p className="mt-2 text-[11px] text-faint">One line, up to {LINE_MAX} characters. Leave readers wanting the next one.</p>
       <Spark />
-      {error && (
-        <p role="alert" className="mt-3 text-sm text-red-800">
-          {error}
-        </p>
-      )}
+      <FormError className="mt-3 text-sm text-red-800">{error}</FormError>
     </form>
   );
 }

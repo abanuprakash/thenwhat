@@ -4,6 +4,8 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { SetupNotice } from "@/components/SetupNotice";
 import { VercelInsights } from "@/components/VercelInsights";
+import { ConnectionNotice } from "@/components/ConnectionNotice";
+import { Toaster } from "@/components/Toast";
 import { isConfigured } from "@/lib/env";
 import { BRAND } from "@/lib/brand";
 import { getViewer } from "@/lib/queries";
@@ -38,8 +40,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to content
         </a>
         <Header viewer={viewer} />
+        <ConnectionNotice />
         <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">{isConfigured ? children : <SetupNotice />}</main>
         <BottomNav role={viewer?.profile.role ?? null} handle={viewer?.profile.handle ?? null} />
+        <Toaster />
         <VercelInsights />
       </body>
     </html>

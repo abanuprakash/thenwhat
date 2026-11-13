@@ -2,6 +2,8 @@
 import { useOptimistic, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleFollow } from "@/app/actions";
+import { safely } from "@/lib/client-action";
+import { toast } from "@/components/Toast";
 
 export function FollowButton({
   storyId,
@@ -31,8 +33,22 @@ export function FollowButton({
     sentAt.current = Date.now();
     setTick((t) => t + 1);
     start(async () => {
-      setFollowing(!following);
-      await toggleFollow(storyId, !following);
+      const want = !following;
+      setFollowing(want);
+      const res = await safely(() => toggleFollow(storyId, want));
+      if (!res.error) return;
+      // The star flips back on its own (the optimistic state ends); say why.
+      toast({
+        title: want ? "That star didn't stick" : "Still following",
+        body:
+          "failure" in res
+            ? res.failure === "server"
+              ? "Something went wrong on our side, so nothing changed."
+              : "You're offline, so nothing changed."
+            : res.error,
+        art: "failure" in res && res.failure !== "server" ? "offline" : "error",
+        action: "failure" in res ? { label: "Try again", run: onClick } : undefined,
+      });
     });
   };
 

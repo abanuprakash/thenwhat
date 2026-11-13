@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { SubmitButton } from "@/components/Pending";
+import { SnappedThread } from "@/components/Illustrations";
 
 /**
  * A decision that needs a second look: approve, reject, make inactive, publish.
@@ -32,6 +33,7 @@ export function ConfirmButton({
   name,
   value,
   caution = false,
+  error,
 }: {
   label: ReactNode;
   className?: string;
@@ -52,6 +54,8 @@ export function ConfirmButton({
   value?: string;
   /** For decisions that take something away: Cancel gets the focus instead of Confirm. */
   caution?: boolean;
+  /** The form's error, if the decision didn't go through. The dialog stays open and shows it. */
+  error?: string;
 }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -60,7 +64,13 @@ export function ConfirmButton({
   const { pending } = useFormStatus();
   const uid = useId();
 
+  // Show an error only if it came back from a decision made in this dialog.
+  const [showError, setShowError] = useState(false);
+  const errorRef = useRef(error);
+  errorRef.current = error;
+
   const open = () => {
+    setShowError(false);
     const form = triggerRef.current?.form;
     setItems(typeof outcomes === "function" ? outcomes(form ? new FormData(form) : new FormData()) : outcomes);
     setClosing(false);
@@ -82,10 +92,13 @@ export function ConfirmButton({
     }
   };
 
-  // When the form finishes sending, the decision is made: close.
+  // When the form finishes sending: close if it worked, stay open with the reason if it didn't.
   const wasPending = useRef(false);
   useEffect(() => {
-    if (wasPending.current && !pending) close();
+    if (wasPending.current && !pending && dialogRef.current?.open) {
+      if (errorRef.current) setShowError(true);
+      else close();
+    }
     wasPending.current = pending;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending]);
@@ -155,12 +168,21 @@ export function ConfirmButton({
             ))}
           </ul>
           {children && <div className="mt-5 space-y-2">{children}</div>}
+          {showError && error && (
+            <div role="alert" className="confirm-error mt-5 flex items-start gap-3 rounded-[6px] bg-sand p-3">
+              <SnappedThread size={36} className="flex-none" />
+              <div>
+                <p className="font-serif text-[14px] font-semibold text-ink">That didn&apos;t go through</p>
+                <p className="text-[13px] leading-relaxed text-muted">{error.replace(/^That didn't reach us: /, "").replace(/^./, (c) => c.toUpperCase())}</p>
+              </div>
+            </div>
+          )}
           <div className="confirm-actions mt-6 flex gap-2">
             <button type="button" className="btn-secondary flex-1 !py-[10px] !text-[13px] desk:flex-none" onClick={close} disabled={pending} autoFocus={caution}>
               Cancel
             </button>
             <SubmitButton name={name} value={value} className={`${confirmClassName} flex-1 !py-[10px] desk:flex-none`} pendingLabel={pendingLabel} autoFocus={!caution}>
-              {confirmLabel}
+              {showError ? "Try again" : confirmLabel}
             </SubmitButton>
           </div>
         </div>

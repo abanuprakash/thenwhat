@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { vote } from "@/app/actions";
 import { formatNum } from "@/lib/format";
 import type { VoteValue } from "@/lib/types";
+import { safely } from "@/lib/client-action";
+import { toast } from "@/components/Toast";
 
 type State = { up: number; down: number; mine: VoteValue | 0 };
 
@@ -59,8 +61,20 @@ export function VoteControl({
     setTick((t) => t + 1);
     start(async () => {
       setOptimistic(value);
-      const res = await vote(lineId, value);
-      if (res.error) setError(res.error);
+      const res = await safely(() => vote(lineId, value));
+      if (!res.error) return;
+      // The arrow and count flip back on their own (the optimistic state ends); say why.
+      if ("failure" in res) {
+        toast({
+          title: "Your vote didn't land",
+          body: res.failure === "server" ? "Something went wrong on our side, so nothing changed." : "You're offline, so nothing changed.",
+          art: res.failure === "server" ? "error" : "offline",
+          action: { label: "Try again", run: () => cast(value) },
+        });
+      } else {
+        setError(res.error);
+        toast({ title: "That vote didn't count", body: res.error, art: "error" });
+      }
     });
   };
 

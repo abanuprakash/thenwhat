@@ -3,6 +3,8 @@ import { useActionState } from "react";
 import { adminSetPlan } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import { SubmitButton } from "@/components/Pending";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function UserPlanForm({
   handle,
@@ -17,11 +19,12 @@ export function UserPlanForm({
   plans: { id: string; name: string }[];
   idPrefix: string;
 }) {
-  const [state, action] = useActionState<FormState, FormData>(adminSetPlan, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(adminSetPlan), {});
+  const keep = useKeepOnError(state);
   const id = (s: string) => `${idPrefix}-${s}-${handle}`;
   const today = new Date().toISOString().slice(0, 10);
   return (
-    <form action={action} className="flex flex-wrap items-center gap-2">
+    <form action={action} {...keep} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="handle" value={handle} />
       <label htmlFor={id("plan")} className="sr-only">
         Plan for @{handle}
@@ -48,11 +51,12 @@ export function UserPlanForm({
       <SubmitButton className="btn-secondary !py-[6px]">
         Save
       </SubmitButton>
-      {(state.ok || state.error || state.fieldErrors) && (
-        <span role={state.ok ? "status" : "alert"} className={`w-full text-[11px] ${state.ok ? "text-faint" : "text-red-800"}`}>
-          {state.ok ?? state.error ?? Object.values(state.fieldErrors ?? {}).flat()[0]}
+      {state.ok && (
+        <span role="status" className="w-full text-[11px] text-faint">
+          {state.ok}
         </span>
       )}
+      <FormError className="w-full text-[11px] text-red-800">{state.error ?? Object.values(state.fieldErrors ?? {}).flat()[0]}</FormError>
     </form>
   );
 }

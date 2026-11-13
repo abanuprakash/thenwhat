@@ -15,6 +15,8 @@ npm run lint        # eslint .
 npm run test:db     # runs every migration + SQL test on a throwaway Postgres 16 (needs Postgres installed)
 npm run build       # production build
 npm run test:e2e    # Playwright smoke tests; BASE_URL=… for a deployed site
+npm run mock        # demo data server on :54321 (see scripts/mock-supabase.mjs) for trying the UI without Supabase
+MOCK=1 npm run test:failures   # offline, server-error, upload and double-submit tests (needs the mock)
 ```
 
 Before saying a change is done, run `npm run typecheck && npm run lint`. If you touched SQL, also run `npm run test:db`. The `/check` command runs all of them.
@@ -61,6 +63,7 @@ docs/SETUP.md  docs/DESIGN.md
 
 - **Components:** Server Components by default. Add `"use client"` only for interaction (forms with `useActionState`, optimistic votes, the tree map). Never pass a whole DB row into a client component, because everything you pass is serialised into the page; pass only the fields it needs.
 - **Forms:** `useActionState` + a Server Action, with `<BotFields />` on anything a stranger can submit. Error text goes in `role="alert"`, confirmation in `role="status"`.
+- **Calling Server Actions from the browser:** wrap form actions with `guard()` and click actions with `safely()` (`lib/client-action.ts`) so a dropped connection becomes a message instead of the error screen; forms with uncontrolled fields spread `useKeepOnError(state)` so typed text survives. Show form errors with `FormError`, and failures with nowhere else to go with `toast()`. See "When things go wrong" in `docs/DESIGN.md`.
 - **Buttons that send something:** never a bare `<button type="submit">`. Use `SubmitButton` inside forms, `NativeForm` + `SubmitButton` for plain posts to a URL, and `BusyButton` (with `busy` from `useTransition`) for click actions, all from `components/Pending.tsx`. They show the loader and stop double submits.
 - **Styling:** use the Tailwind tokens and component classes from `docs/DESIGN.md` (`btn-primary`, `card`, `field`, `eyebrow`…). No new hex colours without adding them to the design guide.
 - **Motion:** only the utilities in `app/globals.css` (`animate-page`, `animate-stagger`, `animate-pop`, `lift`, `press`…). Never animate layout-heavy properties, and never loop forever.

@@ -5,10 +5,12 @@ import type { FormState } from "@/lib/action-utils";
 import { BotFields } from "@/components/BotFields";
 import type { RequestKind } from "@/lib/types";
 import { SubmitButton } from "@/components/Pending";
+import { guard } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function RequestLimitForm({ lineId, kind }: { lineId: string; kind: RequestKind }) {
   const [open, setOpen] = useState(false);
-  const [state, action] = useActionState<FormState, FormData>(requestLimitIncrease, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(requestLimitIncrease), {});
   const [message, setMessage] = useState("");
   const msgId = `request-${kind}-${lineId}`;
   const error = state.error ?? state.fieldErrors?.message?.[0];
@@ -59,11 +61,7 @@ export function RequestLimitForm({ lineId, kind }: { lineId: string; kind: Reque
           Cancel
         </button>
       </div>
-      {error && (
-        <p role="alert" className="text-xs text-red-800">
-          {error}
-        </p>
-      )}
+      <FormError className="text-xs text-red-800">{error}</FormError>
     </form>
   );
 }

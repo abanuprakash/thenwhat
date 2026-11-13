@@ -4,6 +4,8 @@ import { updateProfile } from "@/app/account-actions";
 import type { FormState } from "@/lib/action-utils";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { NativeForm, SubmitButton } from "@/components/Pending";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function ProfileEditor({
   handle,
@@ -19,7 +21,8 @@ export function ProfileEditor({
   hasGooglePhoto: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [state, action] = useActionState<FormState, FormData>(updateProfile, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(updateProfile), {});
+  const keep = useKeepOnError(state);
   const fe = state.fieldErrors ?? {};
 
   return (
@@ -38,7 +41,7 @@ export function ProfileEditor({
       {open && (
         <div id="profile-editor" className="animate-reveal mt-5 space-y-6">
           <AvatarPicker url={avatarUrl} handle={handle} hasGooglePhoto={hasGooglePhoto} />
-          <form action={action} className="space-y-4">
+          <form action={action} {...keep} className="space-y-4">
             <div>
               <label htmlFor="handle" className="eyebrow mb-2 block">Handle</label>
               <input id="handle" name="handle" defaultValue={handle} maxLength={24} className="field" autoComplete="username" aria-describedby="handle-help" />
@@ -54,12 +57,12 @@ export function ProfileEditor({
               <label htmlFor="bio" className="eyebrow mb-2 block">Bio</label>
               <textarea id="bio" name="bio" defaultValue={bio} maxLength={280} className="field min-h-[90px]" />
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <SubmitButton className="btn-primary" pendingLabel="Saving">
                 Save profile
               </SubmitButton>
               {state.ok && <span className="text-xs text-faint" role="status">{state.ok}</span>}
-              {state.error && <span className="text-xs text-red-800" role="alert">{state.error}</span>}
+              <FormError className="text-xs text-red-800">{state.error}</FormError>
             </div>
           </form>
         </div>

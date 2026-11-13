@@ -6,9 +6,11 @@ import { LINE_MAX } from "@/lib/schemas";
 import { CharCounter } from "@/components/CharCounter";
 import { BotFields } from "@/components/BotFields";
 import { SubmitButton } from "@/components/Pending";
+import { guard } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function EditLineForm({ lineId, text: initial }: { lineId: string; text: string }) {
-  const [state, action] = useActionState<FormState, FormData>(editLine, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(editLine), {});
   const [text, setText] = useState(initial);
   const len = text.trim().length;
   if (state.ok) {
@@ -39,11 +41,7 @@ export function EditLineForm({ lineId, text: initial }: { lineId: string; text: 
           Save change
         </SubmitButton>
       </div>
-      {(state.error || state.fieldErrors?.text) && (
-        <p role="alert" className="mt-3 text-sm text-red-800">
-          {state.error ?? state.fieldErrors?.text?.[0]}
-        </p>
-      )}
+      <FormError className="mt-3 text-sm text-red-800">{state.error ?? state.fieldErrors?.text?.[0]}</FormError>
     </form>
   );
 }

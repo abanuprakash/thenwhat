@@ -200,6 +200,51 @@ html:has(dialog.confirm[open]) { overflow: hidden; }
   100% { opacity: 0; transform: rotate(var(--a)) translateY(-14px) scale(0.4); }
 }
 
+/* ── Failure states: toasts, the offline note, and their drawings ────────────── */
+/* Toast: one note at a time, rising from the bottom (above the phone nav). */
+.toast-wrap { position: fixed; left: 0; right: 0; bottom: 20px; z-index: 60; display: flex; justify-content: center; padding: 0 16px; pointer-events: none; }
+@media (max-width: 760px) { .toast-wrap { bottom: calc(92px + env(safe-area-inset-bottom)); } }
+.toast {
+  pointer-events: auto; display: flex; align-items: flex-start; gap: 12px; width: min(420px, 100%);
+  background: #FFFFFF; border: 1px solid rgba(0, 0, 0, 0.08); border-left: 3px solid #D9A441; border-radius: 6px;
+  padding: 12px 12px 12px 14px; box-shadow: 0 18px 40px -20px rgba(60, 40, 10, 0.45);
+  animation: sb-toast-in 360ms var(--ease-out) both;
+}
+.toast[data-leaving] { animation: sb-toast-out 220ms var(--ease-soft) forwards; }
+.toast-art { flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: #F1ECE1; }
+.toast-close { flex: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: -4px -4px 0 0; border-radius: 9999px; color: #736A5D; }
+.toast-close:hover { background: #F1ECE1; color: #1C1A17; }
+@keyframes sb-toast-in { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes sb-toast-out { to { opacity: 0; transform: translateY(8px); } }
+/* Under the header: you're offline / back online. */
+.conn-wrap { position: sticky; top: 58px; z-index: 25; display: flex; justify-content: center; padding: 8px 16px 0; pointer-events: none; }
+.conn {
+  pointer-events: auto; display: flex; align-items: center; gap: 10px; width: min(460px, 100%);
+  background: #F1E4C4; border: 1px solid #D9C48A; border-radius: 9999px; padding: 6px 16px 6px 8px;
+  animation: sb-conn-in 360ms var(--ease-out) both;
+}
+.conn[data-back] { background: #FFFFFF; border-color: rgba(0, 0, 0, 0.08); }
+@keyframes sb-conn-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+/* SnappedThread: the two halves pull apart a little and a few sparks fly, once. */
+.art-snap .snap-l, .art-snap .snap-r { transform-box: fill-box; }
+.art-snap .snap-l { animation: sb-snap-l 520ms var(--ease-out) 120ms both; transform-origin: left bottom; }
+.art-snap .snap-r { animation: sb-snap-r 520ms var(--ease-out) 120ms both; transform-origin: right top; }
+.art-snap .snap-spark { animation: sb-fade-out 700ms var(--ease-out) 260ms both; }
+@keyframes sb-snap-l { from { transform: translate(2px, -1px); } to { transform: rotate(-6deg); } }
+@keyframes sb-snap-r { from { transform: translate(-2px, 1px); } to { transform: rotate(5deg); } }
+/* RejoinedThread: the line draws across and the knot ties itself. */
+.art-rejoin .rejoin-line { animation: sb-icon-draw 520ms var(--ease-out) both; }
+.art-rejoin .rejoin-knot { transform-box: fill-box; transform-origin: center; animation: sb-icon-pop 360ms var(--ease-out) 420ms both; }
+/* TangledBranch: the knot scribbles itself in. */
+.art-tangle .tangle-knot { animation: sb-icon-draw 900ms var(--ease-out) 150ms both; }
+
+/* A failed request in a form: the card rises in. */
+.form-failure { animation: sb-count var(--dur-base) var(--ease-out); }
+
+/* The error inside a confirmation shakes once, gently, so it's noticed. */
+.confirm-error { animation: sb-nudge-x 420ms var(--ease-out); }
+@keyframes sb-nudge-x { 0%, 100% { transform: none; } 20% { transform: translateX(-4px); } 45% { transform: translateX(3px); } 70% { transform: translateX(-2px); } }
+
 /* ── Home feed tabs ─────────────────────────────────────────────────────── */
 .feed-tabs { scrollbar-width: none; }
 .feed-tabs::-webkit-scrollbar { display: none; }

@@ -3,6 +3,8 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { createInvite } from "@/app/actions";
 import { BusyButton } from "@/components/Pending";
+import { safely } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 type Invite = { token: string; invitee: string | null; status: "Joined" | "Pending" | "Expired"; expiresAt: string };
 
@@ -54,9 +56,9 @@ export function InviteManager({ siteUrl, canCreate, invites }: { siteUrl: string
               pendingLabel="Creating"
               onClick={() =>
                 start(async () => {
-                  const res = await createInvite();
+                  const res = await safely(() => createInvite());
                   if (res.error) setError(res.error);
-                  else if (res.token) await share(res.token);
+                  else if ("token" in res && res.token) await share(res.token);
                 })
               }
             >
@@ -64,7 +66,7 @@ export function InviteManager({ siteUrl, canCreate, invites }: { siteUrl: string
             </BusyButton>
           )}
         </div>
-        {error && <p role="alert" className="w-full text-xs text-red-800">{error}</p>}
+        <FormError className="w-full text-xs text-red-800">{error}</FormError>
       </div>
 
       <h2 className="eyebrow mb-[10px]">People you&apos;ve invited</h2>

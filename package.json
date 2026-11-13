@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:db": "bash supabase/tests/run-local.sh",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "mock": "node scripts/mock-supabase.mjs",
+    "test:failures": "playwright test e2e/failures.spec.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

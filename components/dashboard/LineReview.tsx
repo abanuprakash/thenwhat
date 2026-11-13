@@ -3,6 +3,8 @@ import { useActionState } from "react";
 import { reviewLine } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import { ConfirmButton, type Outcome } from "@/components/Confirm";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 /**
  * Approve or reject a pending line (or a pending edit), with an optional note to the writer.
@@ -23,7 +25,8 @@ export function LineReview({
   isEdit?: boolean;
   idPrefix?: string;
 }) {
-  const [state, action] = useActionState<FormState, FormData>(reviewLine, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(reviewLine), {});
+  const keep = useKeepOnError(state);
   const noteId = `${idPrefix}-note-${lineId}`;
   if (state.ok) {
     return (
@@ -66,7 +69,7 @@ export function LineReview({
         ];
 
   return (
-    <form action={action} className="space-y-2">
+    <form action={action} {...keep} className="space-y-2">
       <input type="hidden" name="lineId" value={lineId} />
       <label htmlFor={noteId} className="eyebrow block">
         Note to the writer (optional)
@@ -74,6 +77,7 @@ export function LineReview({
       <input id={noteId} name="note" maxLength={280} className="field !py-2 !text-sm" />
       <div className="flex flex-wrap gap-2">
         <ConfirmButton
+          error={state.error}
           label="Approve"
           eyebrow={isEdit ? "Edit waiting for approval" : "New line waiting for approval"}
           title={isEdit ? "Publish this edit?" : "Publish this line?"}
@@ -85,6 +89,7 @@ export function LineReview({
           value="yes"
         />
         <ConfirmButton
+          error={state.error}
           label="Don't publish"
           className="btn-secondary"
           eyebrow={isEdit ? "Edit waiting for approval" : "New line waiting for approval"}
@@ -99,11 +104,7 @@ export function LineReview({
           caution
         />
       </div>
-      {state.error && (
-        <p role="alert" className="text-xs text-red-800">
-          {state.error}
-        </p>
-      )}
+      <FormError className="text-xs text-red-800">{state.error}</FormError>
     </form>
   );
 }
