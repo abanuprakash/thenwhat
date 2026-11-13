@@ -3,9 +3,6 @@
 @tailwind utilities;
 
 :root {
-  --font-serif: "Source Serif 4", Georgia, serif;
-  --font-sans: Inter, system-ui, sans-serif;
-
   /* Motion: short, soft, never bouncy. One curve for things arriving, one for small feedback. */
   --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);

@@ -18,7 +18,15 @@ export function FollowButton({
   allowed?: boolean;
   variant?: "star" | "button";
 }) {
-  const [following, setFollowing] = useOptimistic(initial);
+  // What the server has confirmed: follows each saved change (no page redraw needed) and
+  // resets if the page brings a newer value.
+  const [confirmed, setConfirmed] = useState(initial);
+  const [pageSeen, setPageSeen] = useState(initial);
+  if (pageSeen !== initial) {
+    setPageSeen(initial);
+    setConfirmed(initial);
+  }
+  const [following, setFollowing] = useOptimistic(confirmed);
   // The star changes instantly; while it's being saved, further taps are ignored.
   const [saving, start] = useTransition();
   // If a save is ever cut off (a dropped connection), don't keep ignoring taps: the guard expires.
@@ -36,7 +44,10 @@ export function FollowButton({
       const want = !following;
       setFollowing(want);
       const res = await safely(() => toggleFollow(storyId, want));
-      if (!res.error) return;
+      if (!res.error) {
+        setConfirmed(want);
+        return;
+      }
       // The star flips back on its own (the optimistic state ends); say why.
       toast({
         title: want ? "That star didn't stick" : "Still following",

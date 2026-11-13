@@ -86,7 +86,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 pb-24 pt-8 desk:px-6">
       {/* Live updates: only here, on the reading page, and only when switched on in Dashboard → Settings. */}
-      {live.on && <LiveRefresh storyId={story.id} seconds={live.seconds} />}
+      {live.on && <LiveRefresh storyId={story.id} lineId={lineId} seconds={live.seconds} />}
 
       {!active && (
         <div role="status" className="mb-5 rounded-[3px] border border-black/10 bg-chip px-4 py-3 text-sm text-ink">

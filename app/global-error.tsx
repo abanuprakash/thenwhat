@@ -1,4 +1,5 @@
 "use client";
+import { sans, serif } from "./fonts";
 import "./globals.css";
 import { TangledBranch } from "@/components/Illustrations";
 
@@ -8,7 +9,7 @@ import { TangledBranch } from "@/components/Illustrations";
  */
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
       <body className="flex min-h-screen items-center justify-center bg-paper px-4 font-sans text-ink">
         <main className="w-full max-w-[440px] text-center">
           <div className="mx-auto mb-5 flex h-[104px] w-[104px] items-center justify-center rounded-full bg-sand">

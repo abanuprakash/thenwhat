@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 
 /**
  * Live updates for the reading page: while this story is open and the tab is visible, it asks
- * our server every `seconds` whether the story changed, and re-renders the page if so.
+ * our server every `seconds` whether anything this page shows (path, branches, mini tree) changed,
+ * and re-renders the page if so. Votes and changes elsewhere in the story don't count.
  * - Rendered only on the reading page, and only when live updates are on (Dashboard → Settings).
  * - Stops while the tab is hidden; checks once straight away when it's shown again.
  * - Never sends a check while the previous one is still waiting.
@@ -12,7 +13,7 @@ import { useRouter } from "next/navigation";
  * - If the server says "slow down" (429), it waits twice as long, up to a minute.
  * No database connection from the browser.
  */
-export function LiveRefresh({ storyId, seconds }: { storyId: string; seconds: number }) {
+export function LiveRefresh({ storyId, lineId, seconds }: { storyId: string; lineId: string; seconds: number }) {
   const router = useRouter();
 
   useEffect(() => {
@@ -33,7 +34,8 @@ export function LiveRefresh({ storyId, seconds }: { storyId: string; seconds: nu
       waiting = true;
       try {
         // The answer is shared for a second at Vercel's CDN; the browser itself never keeps it.
-        const res = await fetch(`/api/stories/${storyId}/version`);
+        // Asks about this page only (its path, branches and mini tree), not the whole story.
+        const res = await fetch(`/api/stories/${storyId}/version?line=${lineId}`);
         if (res.status === 429) {
           every = Math.min(every * 2, 60_000);
         } else if (res.ok) {
@@ -62,7 +64,7 @@ export function LiveRefresh({ storyId, seconds }: { storyId: string; seconds: nu
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [storyId, seconds, router]);
+  }, [storyId, lineId, seconds, router]);
 
   return null;
 }

@@ -73,7 +73,7 @@ export async function getRequests(viewer: NonNullable<Viewer>, f: RequestFilter)
   const supabase = await createClient();
   let q = supabase
     .from("limit_requests")
-    .select(REQUEST_SELECT, { count: "exact" })
+    .select(REQUEST_SELECT, { count: "estimated" })
     .order("created_at", { ascending: f.status === "pending" })
     .range((f.page - 1) * PAGE_SIZE, f.page * PAGE_SIZE - 1);
   if (f.status !== "all") q = q.eq("status", f.status);
@@ -88,7 +88,7 @@ export async function getDashboardStories(viewer: NonNullable<Viewer>, f: StoryF
   const supabase = await createClient();
   let q = supabase
     .from("dashboard_stories")
-    .select("*", { count: "exact" })
+    .select("*", { count: "estimated" })
     .order("created_at", { ascending: false })
     .range((f.page - 1) * PAGE_SIZE, f.page * PAGE_SIZE - 1);
   // Authors only manage their own stories; admins see everything.
@@ -105,7 +105,7 @@ export async function getDashboardUsers(f: UserFilter) {
   const supabase = await createClient();
   let q = supabase
     .from("dashboard_users")
-    .select("*", { count: "exact" })
+    .select("*", { count: "estimated" })
     .order("created_at", { ascending: false })
     .range((f.page - 1) * PAGE_SIZE, f.page * PAGE_SIZE - 1);
   if (f.role !== "all") q = q.eq("role", f.role);
@@ -134,7 +134,7 @@ export async function getActivity(group: string, page: number, limit = PAGE_SIZE
        actor:profiles!activity_actor_id_fkey(handle),
        subject:profiles!activity_subject_id_fkey(handle),
        story:stories!activity_story_id_fkey(title, slug)`,
-      { count: "exact" },
+      { count: "estimated" },
     )
     .order("created_at", { ascending: false })
     .range((page - 1) * limit, page * limit - 1);
@@ -153,7 +153,7 @@ export async function getReviewQueue(viewer: NonNullable<Viewer>, mine: boolean,
       `*, author:profiles!lines_author_id_fkey(handle),
        story:stories!lines_story_id_fkey(title, slug, author_id),
        parent:lines!lines_parent_id_fkey(text)`,
-      { count: "exact" },
+      { count: "estimated" },
     )
     .or("status.eq.pending,pending_text.not.is.null")
     .order("created_at", { ascending: true })

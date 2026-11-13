@@ -9,6 +9,7 @@ import { Toaster } from "@/components/Toast";
 import { isConfigured } from "@/lib/env";
 import { BRAND } from "@/lib/brand";
 import { getViewer } from "@/lib/queries";
+import { sans, serif } from "./fonts";
 
 export const metadata: Metadata = {
   title: { default: `${BRAND.name}: ${BRAND.tagline}`, template: `%s · ${BRAND.name}` },
@@ -24,16 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     // data-scroll-behavior: Next.js 16 no longer turns off our smooth scrolling during page changes
     // unless asked; with it, a new page starts at the top instantly while in-page scrolling stays smooth.
-    <html lang="en" data-scroll-behavior="smooth">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap"
-        />
-      </head>
+    <html lang="en" data-scroll-behavior="smooth" className={`${serif.variable} ${sans.variable}`}>
       <body className="flex min-h-screen flex-col">
         <a
           href="#main"
@@ -46,7 +38,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">{isConfigured ? children : <SetupNotice />}</main>
         <BottomNav role={viewer?.profile.role ?? null} handle={viewer?.profile.handle ?? null} />
         <Toaster />
-        <VercelInsights />
+        {/* Production only: preview deployments share the same monthly allowance. */}
+        {process.env.VERCEL_ENV === "production" && <VercelInsights />}
       </body>
     </html>
   );

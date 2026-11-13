@@ -38,7 +38,16 @@ export function VoteControl({
   allowed?: boolean;
   layout?: "row" | "column";
 }) {
-  const [state, setOptimistic] = useOptimistic<State, VoteValue>({ up, down, mine }, apply);
+  // What the server has confirmed. Starts from the page's numbers, follows each saved vote
+  // (no page redraw needed), and resets if the page brings newer numbers.
+  const fromPage: State = { up, down, mine };
+  const [confirmed, setConfirmed] = useState(fromPage);
+  const [pageSeen, setPageSeen] = useState(fromPage);
+  if (pageSeen.up !== up || pageSeen.down !== down || pageSeen.mine !== mine) {
+    setPageSeen(fromPage);
+    setConfirmed(fromPage);
+  }
+  const [state, setOptimistic] = useOptimistic<State, VoteValue>(confirmed, apply);
   // The vote shows instantly; while it's being saved, further taps are ignored so nothing is sent twice.
   const [saving, start] = useTransition();
   // If a save is ever cut off (a dropped connection), don't keep ignoring taps: the guard expires.
@@ -62,7 +71,10 @@ export function VoteControl({
     start(async () => {
       setOptimistic(value);
       const res = await safely(() => vote(lineId, value));
-      if (!res.error) return;
+      if (!res.error) {
+        setConfirmed((s) => apply(s, value));
+        return;
+      }
       // The arrow and count flip back on their own (the optimistic state ends); say why.
       if ("failure" in res) {
         toast({
