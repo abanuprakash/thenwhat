@@ -31,9 +31,9 @@ export async function getSettings(): Promise<Settings> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("app_settings")
-    .select("max_branches_per_line, max_depth, lines_per_hour, auto_approve, updated_at")
+    .select("max_branches_per_line, max_depth, lines_per_hour, auto_approve, live_updates, poll_seconds, updated_at")
     .single();
-  return (data as Settings) ?? { max_branches_per_line: null, max_depth: null, lines_per_hour: 10, auto_approve: true, updated_at: "" };
+  return (data as Settings) ?? { max_branches_per_line: null, max_depth: null, lines_per_hour: 10, auto_approve: true, live_updates: true, poll_seconds: 1, updated_at: "" };
 }
 
 export async function getCapacity(lineId: string): Promise<Capacity | null> {

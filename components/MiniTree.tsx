@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { layoutTree } from "@/lib/tree-layout";
 import { truncate } from "@/lib/format";
 import type { Line } from "@/lib/types";
@@ -59,7 +59,7 @@ export function MiniTree({
         const isCurrent = n.id === currentId;
         const onPath = pathIds.has(n.id);
         return (
-          <Link key={n.id} href={`/s/${slug}/${n.id}`} aria-label={truncate(n.text, 60)} className="group">
+          <IntentLink key={n.id} href={`/s/${slug}/${n.id}`} aria-label={truncate(n.text, 60)} className="group">
             <circle cx={p.x} cy={p.y} r={12} fill="transparent" />
             {isCurrent && (
               <circle
@@ -81,7 +81,7 @@ export function MiniTree({
               strokeWidth={2}
               className="transition-[r] duration-200 group-hover:[r:7px]"
             />
-          </Link>
+          </IntentLink>
         );
       })}
     </svg>

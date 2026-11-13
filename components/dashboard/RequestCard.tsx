@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { StatusPill } from "@/components/dashboard/ui";
 import { CancelRequestButton, RequestDecision } from "@/components/dashboard/RequestDecision";
 import { timeAgo, truncate } from "@/lib/format";
@@ -27,7 +27,7 @@ export function RequestCard({ request: r, viewerId, isAdmin }: { request: LimitR
       <p className="mb-2 text-xs text-faint">
         In{" "}
         {r.story ? (
-          <Link href={`/s/${r.story.slug}`}>{r.story.title}</Link>
+          <IntentLink href={`/s/${r.story.slug}`}>{r.story.title}</IntentLink>
         ) : (
           "a story you can no longer see"
         )}
@@ -36,9 +36,9 @@ export function RequestCard({ request: r, viewerId, isAdmin }: { request: LimitR
       {r.line && (
         <blockquote className="mb-3 border-l-2 border-line pl-3 font-serif text-[15px] leading-snug text-ink">
           {lineHref ? (
-            <Link href={lineHref} className="text-ink hover:text-gold">
+            <IntentLink href={lineHref} className="text-ink hover:text-gold">
               {truncate(r.line.text, 200)}
-            </Link>
+            </IntentLink>
           ) : (
             truncate(r.line.text, 200)
           )}

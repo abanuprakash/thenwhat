@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { notFound } from "next/navigation";
 import {
   BRANCH_PAGE,
@@ -11,6 +12,7 @@ import {
   getStoryBySlug,
   getSubtree,
   getEntitlements,
+  getLiveUpdates,
   getViewer,
   hasFeature,
   isFollowing,
@@ -52,7 +54,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
   const show = Math.min(Math.max(Number(rawShow) || BRANCH_PAGE, BRANCH_PAGE), 100);
   const treeLevels = Math.min(line.depth + 2, 8);
 
-  const [ancestors, { branches, hasMore }, following, tree, capRaw, pendingKinds, ent] = await Promise.all([
+  const [ancestors, { branches, hasMore }, following, tree, capRaw, pendingKinds, ent, live] = await Promise.all([
     getAncestors(lineId),
     getBranches(lineId, show),
     isFollowing(viewer, story.id),
@@ -60,6 +62,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
     getCapacity(lineId),
     getMyPendingKinds(viewer, lineId),
     getEntitlements(),
+    getLiveUpdates(),
   ]);
   const cap = describeCapacity(capRaw);
   const myVotes = await getMyVotes(viewer, [lineId, ...branches.map((b) => b.id)]);
@@ -82,7 +85,8 @@ export default async function ReadingPage({ params, searchParams }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 pb-24 pt-8 desk:px-6">
-      <LiveRefresh storyId={story.id} />
+      {/* Live updates: only here, on the reading page, and only when switched on in Dashboard → Settings. */}
+      {live.on && <LiveRefresh storyId={story.id} seconds={live.seconds} />}
 
       {!active && (
         <div role="status" className="mb-5 rounded-[3px] border border-black/10 bg-chip px-4 py-3 text-sm text-ink">
@@ -98,7 +102,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
             const current = a.id === lineId;
             return (
               <span key={a.id} className="flex items-center gap-[6px]">
-                <Link
+                <IntentLink
                   href={`/s/${slug}/${a.id}`}
                   aria-current={current ? "page" : undefined}
                   className={`rounded-full px-[10px] py-1 text-xs transition-colors duration-200 ${
@@ -106,7 +110,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
                   } hover:text-ink`}
                 >
                   {i === 0 ? story.title : truncate(a.text, 22)}
-                </Link>
+                </IntentLink>
                 {i < ancestors.length - 1 && <span aria-hidden="true" className="text-[11px] text-[#A89C7E]">›</span>}
               </span>
             );
@@ -228,12 +232,12 @@ export default async function ReadingPage({ params, searchParams }: Props) {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <Link
+                        <IntentLink
                           href={`/s/${slug}/${b.id}`}
                           className="m-0 block font-serif text-[15.5px] leading-normal text-ink after:absolute after:inset-0 after:content-[''] hover:text-ink"
                         >
                           {b.text}
-                        </Link>
+                        </IntentLink>
                         <span className="text-[11px] font-medium text-faint">
                           by @{b.author?.handle}
                           {b.status === "pending" && <span className="font-semibold text-gold"> · waiting for approval</span>}

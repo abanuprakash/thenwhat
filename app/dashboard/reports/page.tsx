@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { getOpenReports, requireAdmin } from "@/lib/queries";
 import { AdminLineActions } from "@/components/AdminTools";
 import { timeAgo } from "@/lib/format";
@@ -25,7 +25,7 @@ export default async function ReportsPage() {
                   {reports.length} {reports.length === 1 ? "report" : "reports"}
                 </span>
                 <span>·</span>
-                <Link href={`/s/${line.story?.slug}/${line.id}`}>{line.story?.title}</Link>
+                <IntentLink href={`/s/${line.story?.slug}/${line.id}`}>{line.story?.title}</IntentLink>
                 <span>· by @{line.author?.handle}</span>
               </div>
               <p className="mb-3 font-serif text-[15px] leading-normal">{line.text}</p>

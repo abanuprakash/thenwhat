@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { getEntitlements, getViewer, hasFeature } from "@/lib/queries";
 import { getReviewQueue, pageFrom, PAGE_SIZE } from "@/lib/dashboard-queries";
 import { Empty, FilterBar, Pagination, SelectField } from "@/components/dashboard/ui";
@@ -61,7 +61,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
                   {l.story && (
                     <>
                       <span>· in</span>
-                      <Link href={`/s/${l.story.slug}/${l.parent_id ?? l.id}`}>{l.story.title}</Link>
+                      <IntentLink href={`/s/${l.story.slug}/${l.parent_id ?? l.id}`}>{l.story.title}</IntentLink>
                     </>
                   )}
                 </div>

@@ -33,7 +33,7 @@ Leave `.env.local` open; you'll fill it in at step 4.
 
 ## 3. Create the database
 
-The whole database (tables, triggers, security rules and functions) lives in five SQL files in `supabase/migrations/`. Pick one of these two ways to run them.
+The whole database (tables, triggers, security rules and functions) lives in seven SQL files in `supabase/migrations/`. Pick one of these two ways to run them.
 
 **Option A: paste into the SQL editor (easiest)**
 
@@ -43,6 +43,8 @@ The whole database (tables, triggers, security rules and functions) lives in fiv
 4. Then `20261112000003_rls.sql`.
 5. Then `20261112000004_dashboard_limits.sql`. This adds the dashboard, the story limits, requests and the activity log.
 6. Then `20261112000005_plans_approvals_security.sql`. This adds plans, line approval, edits, onboarding and rate limits.
+7. Then `20261113000001_live_updates.sql`. This adds the live-updates switch and interval to Dashboard → Settings.
+8. Then `20261113000002_votes_dont_refresh_readers.sql`. Votes stop reloading open reading pages.
 
 Run them in that order. Each one builds on the one before.
 
@@ -201,7 +203,7 @@ That works out to $0 while you build and about $45 a month at launch, which matc
 
 **"You've written 10 lines in the last hour".** That's the rate limit working. To change it, edit the `10` in `lines_last_hour` checks: in the "Authors write lines" policy in `20261112000003_rls.sql`, in `create_story` in `20261112000002_functions_triggers.sql`, and in `writeLine` in `app/actions.ts`.
 
-**I want to undo everything and start the database over.** In the SQL editor, run `drop schema public cascade; create schema public; grant usage on schema public to anon, authenticated, service_role;` and then run the four migrations again. This deletes all data.
+**I want to undo everything and start the database over.** In the SQL editor, run `drop schema public cascade; create schema public; grant usage on schema public to anon, authenticated, service_role;` and then run the migrations again, in order. This deletes all data.
 
 **I changed a limit but people can still write past it.** Check the story's own limits under **Dashboard → Stories → Story limits**. A per-story limit (or an approved request) wins over the site setting.
 

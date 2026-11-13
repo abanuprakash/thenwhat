@@ -154,6 +154,8 @@ export async function updateSettings(_: FormState, formData: FormData): Promise<
     maxDepth: formData.get("maxDepth"),
     linesPerHour: formData.get("linesPerHour"),
     autoApprove: formData.get("autoApprove"),
+    liveUpdates: formData.get("liveUpdates"),
+    pollSeconds: formData.get("pollSeconds"),
   });
   if (!parsed.success) return fieldErrors(parsed.error);
   const supabase = await createClient();
@@ -162,10 +164,12 @@ export async function updateSettings(_: FormState, formData: FormData): Promise<
     p_max_depth: parsed.data.maxDepth,
     p_lines_per_hour: parsed.data.linesPerHour,
     p_auto_approve: parsed.data.autoApprove === "yes",
+    p_live_updates: parsed.data.liveUpdates === "on",
+    p_poll_seconds: parsed.data.pollSeconds,
   });
   if (error) return { error: friendly(error) };
   refresh();
-  return { ok: "Settings saved. They apply to new lines straight away." };
+  return { ok: "Settings saved. Limits apply to new lines straight away; open stories pick up the live-update change within one check." };
 }
 
 // ── Admin: people ───────────────────────────────────────────────────────

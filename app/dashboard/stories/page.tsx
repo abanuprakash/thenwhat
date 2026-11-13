@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { getEntitlements, getViewer, hasFeature } from "@/lib/queries";
 import { cleanSearch, getDashboardStories, pageFrom, PAGE_SIZE } from "@/lib/dashboard-queries";
 import { Empty, FilterBar, Pagination, SearchField, SelectField, StatusPill } from "@/components/dashboard/ui";
@@ -73,9 +73,9 @@ export default async function StoriesPage({
               return (
                 <li key={s.id} className="card p-4">
                   <div className="mb-1 flex items-start justify-between gap-3">
-                    <Link href={`/s/${s.slug}`} className="font-serif text-base font-semibold text-ink hover:text-gold">
+                    <IntentLink href={`/s/${s.slug}`} className="font-serif text-base font-semibold text-ink hover:text-gold">
                       {s.title}
-                    </Link>
+                    </IntentLink>
                     <StatusPill status={s.status} />
                   </div>
                   <p className="mb-2 text-xs text-faint">
@@ -106,13 +106,13 @@ export default async function StoriesPage({
                     {s.pending_lines > 0 && (
                       <>
                         {" · "}
-                        <Link href="/dashboard/review">{s.pending_lines} waiting</Link>
+                        <IntentLink href="/dashboard/review">{s.pending_lines} waiting</IntentLink>
                       </>
                     )}
                     {s.pending_requests > 0 && (
                       <>
                         {" · "}
-                        <Link href="/dashboard/requests">{s.pending_requests} request(s)</Link>
+                        <IntentLink href="/dashboard/requests">{s.pending_requests} request(s)</IntentLink>
                       </>
                     )}
                   </p>
@@ -156,9 +156,9 @@ export default async function StoriesPage({
                   return (
                     <tr key={s.id} className="align-top">
                       <th scope="row" className="px-4 py-3 font-normal">
-                        <Link href={`/s/${s.slug}`} className="font-serif text-[15px] font-semibold text-ink hover:text-gold">
+                        <IntentLink href={`/s/${s.slug}`} className="font-serif text-[15px] font-semibold text-ink hover:text-gold">
                           {s.title}
-                        </Link>
+                        </IntentLink>
                         <div className="text-xs text-faint">
                           @{s.author_handle} · {s.genre} · {timeAgo(s.created_at)}
                         </div>
@@ -176,8 +176,8 @@ export default async function StoriesPage({
                         {l.custom && <span className="block text-[11px] text-faint">custom for this story</span>}
                       </td>
                       <td className="px-3 py-3 text-xs">
-                        {s.pending_lines > 0 && <Link href="/dashboard/review" className="block">{s.pending_lines} lines</Link>}
-                        {s.pending_requests > 0 && <Link href="/dashboard/requests" className="block">{s.pending_requests} requests</Link>}
+                        {s.pending_lines > 0 && <IntentLink href="/dashboard/review" className="block">{s.pending_lines} lines</IntentLink>}
+                        {s.pending_requests > 0 && <IntentLink href="/dashboard/requests" className="block">{s.pending_requests} requests</IntentLink>}
                         {s.pending_lines === 0 && s.pending_requests === 0 && <span className="text-faint">–</span>}
                         <span className="mt-1 block text-[11px] text-faint">{s.effective_auto_approve ? "Auto-publish" : "Needs approval"}</span>
                       </td>

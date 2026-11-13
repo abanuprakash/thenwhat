@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { FEED_TABS, getEntitlements, getFeed, getFollowedIds, getViewer, hasFeature, type FeedTab } from "@/lib/queries";
 import { FollowButton } from "@/components/FollowButton";
 import { FeedTabs } from "@/components/FeedTabs";
@@ -40,12 +41,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-2">
-                  <Link
+                  <IntentLink
                     href={`/s/${s.slug}`}
                     className="font-serif text-base font-semibold text-ink transition-colors after:absolute after:inset-0 after:content-[''] group-hover:text-gold-dark hover:text-gold-dark"
                   >
                     {s.title}
-                  </Link>
+                  </IntentLink>
                   <span className="text-[10px] font-medium tracking-[.02em] text-gold">{s.genre}</span>
                   {s.finished && <span className="badge-muted">Finished</span>}
                 </div>

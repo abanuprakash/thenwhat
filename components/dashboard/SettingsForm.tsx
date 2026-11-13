@@ -20,14 +20,27 @@ function previewLevels(branches: number | null, depth: number | null) {
   return { levels, truncatedBranches: branches === null || branches > 3, truncatedDepth: depth === null || depth > 4 };
 }
 
+/**
+ * What a check interval costs: each check is two function runs on Vercel (middleware + the
+ * version route), against the free plan's 1,000,000 a month.
+ */
+function liveCost(seconds: number) {
+  if (!Number.isInteger(seconds) || seconds < 1 || seconds > 300) return null;
+  const perHour = Math.round(3600 / seconds);
+  return { perHour, hours: Math.round(1_000_000 / (perHour * 2)) };
+}
+
 export function SettingsForm({ settings }: { settings: Settings }) {
   const [state, action] = useActionState<FormState, FormData>(guard(updateSettings), {});
   const keep = useKeepOnError(state);
   const [branches, setBranches] = useState(settings.max_branches_per_line?.toString() ?? "");
   const [depth, setDepth] = useState(settings.max_depth?.toString() ?? "");
+  const [live, setLive] = useState(settings.live_updates);
+  const [seconds, setSeconds] = useState(settings.poll_seconds.toString());
   const fe = state.fieldErrors ?? {};
   const b = branches ? Number(branches) : null;
   const d = depth ? Number(depth) : null;
+  const cost = liveCost(Number(seconds));
   const preview = previewLevels(b && b > 0 ? b : null, d && d > 1 ? d : null);
 
   const field = (
@@ -107,6 +120,43 @@ export function SettingsForm({ settings }: { settings: Settings }) {
               <span className="text-xs text-faint">New lines and edits wait in Dashboard → Review until the starter or an admin approves them.</span>
             </span>
           </label>
+        </fieldset>
+
+        <fieldset className="card space-y-4 p-5">
+          <legend className="eyebrow px-1">Live updates</legend>
+          <p className="text-xs leading-relaxed text-faint">
+            While someone has a story open on the reading page, it checks for new lines and votes and updates itself. No other
+            page checks, and a story in a hidden tab doesn&apos;t either. Open stories follow a change here at their next check.
+          </p>
+          <label className="flex items-start gap-3 text-sm text-ink">
+            <input type="radio" name="liveUpdates" value="on" defaultChecked={settings.live_updates} onChange={() => setLive(true)} className="mt-1 accent-[#8C600A]" />
+            <span>
+              <strong className="block">On</strong>
+              <span className="text-xs text-faint">Readers see other people&apos;s new lines without reloading.</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3 text-sm text-ink">
+            <input type="radio" name="liveUpdates" value="off" defaultChecked={!settings.live_updates} onChange={() => setLive(false)} className="mt-1 accent-[#8C600A]" />
+            <span>
+              <strong className="block">Off</strong>
+              <span className="text-xs text-faint">Nothing checks. Readers see new lines when they open or reload a page.</span>
+            </span>
+          </label>
+          <div className={live ? "" : "opacity-60"}>
+            {field(
+              "pollSeconds",
+              "Check every (seconds)",
+              "1 to 300. Shorter feels more live but costs more requests.",
+              { min: 1, max: 300, value: seconds, onChange: (e) => setSeconds(e.target.value), required: true, readOnly: !live },
+              fe.pollSeconds,
+            )}
+            {live && cost && (
+              <p className="mt-2 text-xs leading-relaxed text-muted" aria-live="polite">
+                Each reader with a story open makes about {cost.perHour.toLocaleString("en-IN")} checks an hour. Vercel&apos;s free
+                plan covers about {cost.hours.toLocaleString("en-IN")} hours of reading a month across everyone, before other pages.
+              </p>
+            )}
+          </div>
         </fieldset>
 
         <fieldset className="card space-y-5 p-5">

@@ -97,8 +97,16 @@ select set_config('request.jwt.claim.sub', 'd1000000-0000-0000-0000-000000000004
 set role authenticated;
 select pg_temp.expect_fail($$ select pg_temp.write('A', 'Rex writes') $$, 'free plan writes');
 select pg_temp.expect_fail($$ select public.create_invite() $$, 'free plan invites');
+reset role;
+create temp table before_vote as select id, version, vote_count from public.stories where id = (select story_id from public.lines where text = 'A');
+set role authenticated;
 insert into public.votes (user_id, line_id, value) select auth.uid(), id, 1 from public.lines where text = 'A';
 reset role;
+-- A vote counts straight away but doesn't move the counter open pages watch (no reload storm).
+do $$ begin
+  assert (select s.vote_count from public.stories s join before_vote b using (id)) = (select vote_count + 1 from before_vote), 'vote counted';
+  assert (select s.version from public.stories s join before_vote b using (id)) = (select version from before_vote), 'vote leaves version alone';
+end $$;
 
 -- An admin switches voting off for Free: Rex can't vote any more.
 select set_config('request.jwt.claim.sub', 'a1000000-0000-0000-0000-000000000001', false);

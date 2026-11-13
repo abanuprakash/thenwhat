@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { notFound } from "next/navigation";
 import {
   getProfileByHandle,
@@ -97,9 +98,9 @@ export default async function ProfilePage({ params }: Props) {
           <ul>
             {stories.map((s) => (
               <li key={s.id} className="flex justify-between gap-4 border-b border-black/[.06] py-[10px]">
-                <Link href={`/s/${s.slug}`} className="font-serif text-sm text-ink hover:text-gold">
+                <IntentLink href={`/s/${s.slug}`} className="font-serif text-sm text-ink hover:text-gold">
                   {s.title}
-                </Link>
+                </IntentLink>
                 <span className="whitespace-nowrap text-xs font-medium text-faint">
                   {plural(Math.max(s.line_count - 1, 0), "branch", "branches")} · {formatNum(s.vote_count)} votes
                 </span>
@@ -115,9 +116,9 @@ export default async function ProfilePage({ params }: Props) {
           <ul>
             {lines.map((l) => (
               <li key={l.id} className="border-b border-black/[.06] py-[10px]">
-                <Link href={`/s/${l.story?.slug}/${l.id}`} className="font-serif text-sm text-ink hover:text-gold">
+                <IntentLink href={`/s/${l.story?.slug}/${l.id}`} className="font-serif text-sm text-ink hover:text-gold">
                   {truncate(l.text, 140)}
-                </Link>
+                </IntentLink>
                 <div className="mt-1 text-[11px] font-medium text-faint">
                   in {l.story?.title} · {l.up - l.down} votes · {timeAgo(l.created_at)}
                 </div>
