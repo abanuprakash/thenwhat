@@ -11,7 +11,7 @@ const ADMIN_PATHS = ["/admin", "/dashboard/users", "/dashboard/reports", "/dashb
 // Pages that need any signed-in user.
 const SIGNED_IN_PATHS = ["/me", "/welcome"];
 // Signed-in people who haven't picked a handle yet can still reach these.
-const ONBOARDING_EXEMPT = ["/welcome", "/auth", "/api", "/login", "/pricing", "/about", "/privacy", "/terms", "/changelog"];
+const ONBOARDING_EXEMPT = ["/welcome", "/auth", "/api", "/login", "/pricing", "/about", "/guide", "/privacy", "/terms", "/changelog"];
 
 const startsWithAny = (path: string, list: string[]) => list.some((p) => path === p || path.startsWith(p + "/"));
 

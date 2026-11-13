@@ -7,9 +7,24 @@ import { OPERATOR } from "@/lib/brand";
  * chapter leads with a story-like line (serif) and follows with the plain facts (sans), so the
  * page reads as a story without hiding anything a reader needs.
  */
-export function StoryPage({ eyebrow, title, opening, meta, children }: { eyebrow: string; title: string; opening: ReactNode; meta?: ReactNode; children: ReactNode }) {
+export function StoryPage({
+  eyebrow,
+  title,
+  opening,
+  meta,
+  wide,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  opening: ReactNode;
+  meta?: ReactNode;
+  /** Room for screenshots (the guide). */
+  wide?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <article className="container-narrow animate-page">
+    <article className={`container-narrow animate-page${wide ? " desk:max-w-[780px]" : ""}`}>
       <p className="eyebrow mb-3">{eyebrow}</p>
       <h1 className="font-serif text-[30px] font-semibold leading-tight text-ink desk:text-[36px]">{title}</h1>
       <p className="mt-4 font-serif text-[19px] leading-relaxed text-muted">{opening}</p>

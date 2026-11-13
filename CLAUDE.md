@@ -42,6 +42,7 @@ Next.js 16.4 (App Router, Turbopack, React 19.3, Server Components and Server Ac
 app/
   page.tsx                     home feed (tabs)
   about/ changelog/ privacy/ terms/   story pages (components/StoryPage.tsx; changelog entries in lib/changelog.ts)
+  guide/                       "Every feature, explained" (components/guide/; screenshots in public/media/guide/)
   s/[slug]/[lineId]/           reading view (+ full/ for continuous prose), tree/ for the map
   write/[parentId]  edit/[lineId]  new/   writing
   welcome/  login/  auth/*     onboarding and sign-in (server-side PKCE)
