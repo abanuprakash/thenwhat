@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { normalizeSupabaseUrl } from "@/lib/supabase-url";
 
 // Pages only verified authors (or admins) may open.
 const AUTHOR_PATHS = ["/write", "/edit", "/new", "/invites", "/dashboard"];
@@ -30,7 +31,7 @@ function buildCsp(nonce: string, https: boolean, supabaseOrigin: string) {
     `connect-src 'self'${turnstile ? ` ${TURNSTILE}` : ""}`,
     `frame-src ${turnstile ? TURNSTILE : "'none'"}`,
     `frame-ancestors 'none'`,
-        // Google sign-in posts to our server, which redirects to Supabase, which redirects to Google.
+    // Google sign-in posts to our server, which redirects to Supabase, which redirects to Google.
     // Browsers check every hop of a form's redirects against form-action, so both must be listed.
     `form-action 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""} https://accounts.google.com`,
     `base-uri 'self'`,
@@ -55,8 +56,8 @@ export async function middleware(request: NextRequest) {
   // We never use Next's image optimiser; switch its endpoint off entirely.
   if (path.startsWith("/_next/image")) return new NextResponse(null, { status: 404 });
 
-  const url = process.env.SUPABASE_URL ?? "";
-  const key = process.env.SUPABASE_ANON_KEY ?? "";
+  const url = normalizeSupabaseUrl(process.env.SUPABASE_URL);
+  const key = (process.env.SUPABASE_ANON_KEY ?? "").trim().replace(/^["']|["']$/g, "");
 
   const nonce = btoa(crypto.randomUUID());
   const csp = buildCsp(nonce, request.nextUrl.protocol === "https:", url);

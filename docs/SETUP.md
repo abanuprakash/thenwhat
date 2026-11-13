@@ -189,6 +189,8 @@ That works out to $0 while you build and about $45 a month at launch, which matc
 
 ## Troubleshooting
 
+**`PGRST125 Invalid path specified in request URL` / "You're doing that a lot" on the very first sign-in.** `SUPABASE_URL` has a path on the end (like `/rest/v1/`). It must be just `https://<project-ref>.supabase.co`. The app now trims this automatically, but fix `.env.local` anyway and restart `npm run dev`.
+
 **"Then What can't find its Supabase settings."** `.env.local` (or the Vercel environment variables) is missing a value. Restart `npm run dev` after editing it. On Vercel, redeploy after changing variables.
 
 **The sign-in link opens the home page but I'm not signed in.** The redirect URL isn't allowed. Check that `/auth/callback` on the exact domain you're using is in Supabase's **Redirect URLs** list.
