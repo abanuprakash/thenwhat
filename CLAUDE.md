@@ -61,6 +61,7 @@ docs/SETUP.md  docs/DESIGN.md
 
 - **Components:** Server Components by default. Add `"use client"` only for interaction (forms with `useActionState`, optimistic votes, the tree map). Never pass a whole DB row into a client component, because everything you pass is serialised into the page; pass only the fields it needs.
 - **Forms:** `useActionState` + a Server Action, with `<BotFields />` on anything a stranger can submit. Error text goes in `role="alert"`, confirmation in `role="status"`.
+- **Buttons that send something:** never a bare `<button type="submit">`. Use `SubmitButton` inside forms, `NativeForm` + `SubmitButton` for plain posts to a URL, and `BusyButton` (with `busy` from `useTransition`) for click actions, all from `components/Pending.tsx`. They show the loader and stop double submits.
 - **Styling:** use the Tailwind tokens and component classes from `docs/DESIGN.md` (`btn-primary`, `card`, `field`, `eyebrow`…). No new hex colours without adding them to the design guide.
 - **Motion:** only the utilities in `app/globals.css` (`animate-page`, `animate-stagger`, `animate-pop`, `lift`, `press`…). Never animate layout-heavy properties, and never loop forever.
 - **Copy:** the Then What voice (see `write-copy` skill). Plain, warm, a little curious. No "Oops!", no exclamation marks in errors, no jargon.

@@ -23,6 +23,7 @@ a { @apply text-gold hover:text-gold-dark; transition: color var(--dur-fast) var
 /* People who ask their device for less motion get none: everything lands in its final state at once. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .dots span { opacity: 0.75; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -103,6 +104,45 @@ a { @apply text-gold hover:text-gold-dark; transition: color var(--dur-fast) var
   details > summary { transition: color var(--dur-fast) var(--ease-soft); }
   details > summary::marker { color: #8C600A; }
 }
+
+/* ── Loading: "and then…" dots and busy buttons ────────────────────────────── */
+/* Three dots rise one after another, like a line still being written. Loops only while waiting. */
+.dots { display: inline-flex; align-items: center; gap: 3px; height: 1em; }
+.dots span {
+  width: 4px; height: 4px; border-radius: 9999px; background: currentColor; opacity: 0.3;
+  animation: sb-dots 1.05s var(--ease-soft) infinite;
+}
+.dots span:nth-child(2) { animation-delay: 0.15s; }
+.dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes sb-dots {
+  0%, 70%, 100% { opacity: 0.3; transform: translateY(0); }
+  35% { opacity: 1; transform: translateY(-3px); }
+}
+/* A button that's working keeps its colour (it isn't "unavailable", it's busy) and says so with the cursor. */
+[data-busy] { cursor: progress !important; }
+.btn-primary[data-busy]:disabled { background-color: #8C600A; opacity: 0.92; }
+.btn-secondary[data-busy]:disabled, .btn-outline-gold[data-busy]:disabled { opacity: 0.85; }
+/* Other buttons in a form that's being sent: quietly unavailable. */
+button:disabled:not([data-busy]) { cursor: not-allowed; }
+.btn-secondary:disabled:not([data-busy]), .btn-outline-gold:disabled:not([data-busy]) { opacity: 0.55; }
+
+/* ── Sign-in mark: the question draws itself, then its dot splits into two branches ── */
+.lm-draw { animation: sb-icon-draw 620ms var(--ease-out) var(--d, 120ms) backwards; }
+.lm-pop { transform-box: fill-box; transform-origin: center; animation: sb-icon-pop 360ms var(--ease-out) var(--d, 0ms) backwards; }
+
+/* ── Home feed tabs ─────────────────────────────────────────────────────── */
+.feed-tabs { scrollbar-width: none; }
+.feed-tabs::-webkit-scrollbar { display: none; }
+/* The underline glides to the chosen tab (not on first paint) and breathes while the list loads. */
+.feed-bar { transition: opacity var(--dur-base) var(--ease-soft); will-change: transform; }
+.feed-bar[data-placed] { transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur-base) var(--ease-soft); }
+.feed-bar[data-loading] { animation: sb-breathe 0.9s var(--ease-soft) infinite alternate; }
+@keyframes sb-breathe { from { opacity: 1; } to { opacity: 0.35; } }
+/* The list on its way out dims; the new one slides in from the side you moved towards. */
+.feed-body { transition: opacity var(--dur-base) var(--ease-soft), transform var(--dur-base) var(--ease-soft); }
+.feed-body[data-loading] { opacity: 0.45; transform: translateY(3px); pointer-events: none; }
+.feed-enter { animation: sb-feed-in var(--dur-slow) var(--ease-out) both; }
+@keyframes sb-feed-in { from { opacity: 0; transform: translateX(calc(var(--dir, 0) * 18px)); } to { opacity: 1; transform: none; } }
 
 /* ── Mobile bottom nav ──────────────────────────────────────────────────── */
 /* Tucks away while reading (scroll down), returns on scroll up. */

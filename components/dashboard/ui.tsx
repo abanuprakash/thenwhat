@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NativeForm, SubmitButton } from "@/components/Pending";
 import type { RequestStatus, StoryStatus } from "@/lib/types";
 
 export function StatCard({ label, value, href, highlight }: { label: string; value: number | string; href?: string; highlight?: boolean }) {
@@ -97,12 +98,10 @@ export function Pagination({
 /** A plain GET form: works without JavaScript and keeps filters in the URL. */
 export function FilterBar({ action, children }: { action: string; children: React.ReactNode }) {
   return (
-    <form action={action} method="get" role="search" className="mb-5 flex flex-wrap items-end gap-3">
+    <NativeForm action={action} method="get" role="search" className="mb-5 flex flex-wrap items-end gap-3">
       {children}
-      <button type="submit" className="btn-secondary !py-[9px]">
-        Apply
-      </button>
-    </form>
+      <SubmitButton className="btn-secondary !py-[9px]">Apply</SubmitButton>
+    </NativeForm>
   );
 }
 

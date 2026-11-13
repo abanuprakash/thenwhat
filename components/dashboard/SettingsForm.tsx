@@ -3,6 +3,7 @@ import { useActionState, useState } from "react";
 import { updateSettings } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import type { Settings } from "@/lib/types";
+import { SubmitButton } from "@/components/Pending";
 
 /** A, A1, A2, A11… the way the rules shape a story, for the preview. */
 function previewLevels(branches: number | null, depth: number | null) {
@@ -18,7 +19,7 @@ function previewLevels(branches: number | null, depth: number | null) {
 }
 
 export function SettingsForm({ settings }: { settings: Settings }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(updateSettings, {});
+  const [state, action] = useActionState<FormState, FormData>(updateSettings, {});
   const [branches, setBranches] = useState(settings.max_branches_per_line?.toString() ?? "");
   const [depth, setDepth] = useState(settings.max_depth?.toString() ?? "");
   const fe = state.fieldErrors ?? {};
@@ -117,9 +118,9 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         </fieldset>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button type="submit" className="btn-primary" disabled={pending}>
-            {pending ? "Saving…" : "Save settings"}
-          </button>
+          <SubmitButton className="btn-primary" pendingLabel="Saving">
+            Save settings
+          </SubmitButton>
           {state.ok && (
             <p role="status" className="text-sm text-ink">
               {state.ok}

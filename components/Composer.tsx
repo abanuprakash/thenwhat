@@ -6,9 +6,10 @@ import { BotFields } from "@/components/BotFields";
 import { Spark } from "@/components/Spark";
 import { LINE_MAX } from "@/lib/schemas";
 import { CharCounter } from "@/components/CharCounter";
+import { SubmitButton } from "@/components/Pending";
 
 export function Composer({ parentId }: { parentId: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(writeLine, {});
+  const [state, action] = useActionState<FormState, FormData>(writeLine, {});
   const [text, setText] = useState("");
   const len = text.trim().length;
   const error = state.error ?? state.fieldErrors?.text?.[0];
@@ -32,9 +33,9 @@ export function Composer({ parentId }: { parentId: string }) {
       />
       <div className="mt-[10px] flex items-center justify-between">
         <CharCounter length={len} id="text-count" />
-        <button type="submit" className="btn-primary" disabled={pending || len === 0 || len > LINE_MAX}>
-          {pending ? "Adding…" : "Add my line"}
-        </button>
+        <SubmitButton className="btn-primary" disabled={len === 0 || len > LINE_MAX} pendingLabel="Adding">
+          Add my line
+        </SubmitButton>
       </div>
       <p className="mt-2 text-[11px] text-faint">One line, up to {LINE_MAX} characters. Leave readers wanting the next one.</p>
       <Spark />

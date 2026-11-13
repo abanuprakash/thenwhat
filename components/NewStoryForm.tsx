@@ -6,9 +6,10 @@ import { BotFields } from "@/components/BotFields";
 import { GENRES, type Genre } from "@/lib/types";
 import { LINE_MAX } from "@/lib/schemas";
 import { CharCounter } from "@/components/CharCounter";
+import { SubmitButton } from "@/components/Pending";
 
 export function NewStoryForm() {
-  const [state, action, pending] = useActionState<FormState, FormData>(createStory, {});
+  const [state, action] = useActionState<FormState, FormData>(createStory, {});
   const [title, setTitle] = useState("");
   const [genre, setGenre] = useState<Genre>("Sci-fi");
   const [opening, setOpening] = useState("");
@@ -74,13 +75,9 @@ export function NewStoryForm() {
         />
         <div className="mt-[10px] flex items-center justify-between">
           <CharCounter length={len} id="opening-count" />
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={pending || !title.trim() || len === 0 || len > LINE_MAX}
-          >
-            {pending ? "Starting…" : "Begin the story"}
-          </button>
+          <SubmitButton className="btn-primary" disabled={!title.trim() || len === 0 || len > LINE_MAX} pendingLabel="Starting">
+            Begin the story
+          </SubmitButton>
         </div>
         {(state.error || fe.firstLine) && (
           <p role="alert" className="mt-3 text-sm text-red-800">

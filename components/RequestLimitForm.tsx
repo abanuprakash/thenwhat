@@ -4,10 +4,11 @@ import { requestLimitIncrease } from "@/app/actions";
 import type { FormState } from "@/lib/action-utils";
 import { BotFields } from "@/components/BotFields";
 import type { RequestKind } from "@/lib/types";
+import { SubmitButton } from "@/components/Pending";
 
 export function RequestLimitForm({ lineId, kind }: { lineId: string; kind: RequestKind }) {
   const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState<FormState, FormData>(requestLimitIncrease, {});
+  const [state, action] = useActionState<FormState, FormData>(requestLimitIncrease, {});
   const [message, setMessage] = useState("");
   const msgId = `request-${kind}-${lineId}`;
   const error = state.error ?? state.fieldErrors?.message?.[0];
@@ -51,9 +52,9 @@ export function RequestLimitForm({ lineId, kind }: { lineId: string; kind: Reque
         The story&apos;s starter or an admin will review it. {message.trim().length}/500
       </p>
       <div className="flex gap-2">
-        <button type="submit" className="btn-primary" disabled={pending || message.trim().length < 10}>
-          {pending ? "Sending…" : "Send request"}
-        </button>
+        <SubmitButton className="btn-primary" disabled={message.trim().length < 10} pendingLabel="Sending">
+          Send request
+        </SubmitButton>
         <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>
           Cancel
         </button>

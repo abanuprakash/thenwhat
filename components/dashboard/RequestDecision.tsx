@@ -4,9 +4,11 @@ import { cancelRequest } from "@/app/actions";
 import { decideRequest } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import type { RequestKind } from "@/lib/types";
+import { SubmitButton } from "@/components/Pending";
+import { BusyButton } from "@/components/Pending";
 
 export function RequestDecision({ requestId, kind }: { requestId: string; kind: RequestKind }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(decideRequest, {});
+  const [state, action] = useActionState<FormState, FormData>(decideRequest, {});
   const id = (s: string) => `${s}-${requestId}`;
 
   if (state.ok) {
@@ -50,12 +52,12 @@ export function RequestDecision({ requestId, kind }: { requestId: string; kind: 
           : "This raises the length limit for the whole story, so every path can go further."}
       </p>
       <div className="flex flex-wrap gap-2">
-        <button type="submit" name="approve" value="yes" className="btn-primary" disabled={pending}>
+        <SubmitButton name="approve" value="yes" className="btn-primary">
           Approve
-        </button>
-        <button type="submit" name="approve" value="no" className="btn-secondary" disabled={pending}>
+        </SubmitButton>
+        <SubmitButton name="approve" value="no" className="btn-secondary">
           Decline
-        </button>
+        </SubmitButton>
       </div>
       {(state.error || state.fieldErrors?.granted) && (
         <p role="alert" className="text-xs text-red-800">
@@ -71,14 +73,14 @@ export function CancelRequestButton({ requestId }: { requestId: string }) {
   const [error, setError] = useState<string>();
   return (
     <div className="mt-2">
-      <button
-        type="button"
+      <BusyButton
         className="text-xs font-semibold text-faint hover:text-ink"
-        disabled={pending}
+        busy={pending}
+        pendingLabel="Withdrawing"
         onClick={() => start(async () => setError((await cancelRequest(requestId)).error))}
       >
-        {pending ? "Withdrawing…" : "Withdraw request"}
-      </button>
+        Withdraw request
+      </BusyButton>
       {error && (
         <p role="alert" className="mt-1 text-xs text-red-800">
           {error}

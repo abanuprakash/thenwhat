@@ -3,6 +3,7 @@ import { useActionState, useState } from "react";
 import { setStoryLimits, setStoryModeration, setStoryStatus } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import type { StoryStatus } from "@/lib/types";
+import { SubmitButton } from "@/components/Pending";
 
 /** Inactivate / reactivate with a confirmation step, and (admins) per-story limits. */
 export function StoryActions({
@@ -31,9 +32,9 @@ export function StoryActions({
   idPrefix: string;
 }) {
   const [confirming, setConfirming] = useState(false);
-  const [statusState, statusAction, statusPending] = useActionState<FormState, FormData>(setStoryStatus, {});
-  const [limitState, limitAction, limitPending] = useActionState<FormState, FormData>(setStoryLimits, {});
-  const [modState, modAction, modPending] = useActionState<FormState, FormData>(setStoryModeration, {});
+  const [statusState, statusAction] = useActionState<FormState, FormData>(setStoryStatus, {});
+  const [limitState, limitAction] = useActionState<FormState, FormData>(setStoryLimits, {});
+  const [modState, modAction] = useActionState<FormState, FormData>(setStoryModeration, {});
   const id = (s: string) => `${idPrefix}-${s}-${storyId}`;
   const next: StoryStatus = status === "active" ? "inactive" : "active";
 
@@ -72,9 +73,9 @@ export function StoryActions({
             <p className="text-xs text-muted">“{title}” will be visible and open for writing again.</p>
           )}
           <div className="flex gap-2">
-            <button type="submit" className="btn-primary !py-[7px] !text-xs" disabled={statusPending}>
+            <SubmitButton className="btn-primary !py-[7px] !text-xs">
               {next === "inactive" ? "Yes, make inactive" : "Yes, reactivate"}
-            </button>
+            </SubmitButton>
             <button type="button" className="btn-secondary" onClick={() => setConfirming(false)}>
               Cancel
             </button>
@@ -108,9 +109,9 @@ export function StoryActions({
             <option value="auto">New lines: publish straight away</option>
             <option value="review">New lines: hold for approval</option>
           </select>
-          <button type="submit" className="btn-secondary !py-[6px]" disabled={modPending}>
+          <SubmitButton className="btn-secondary !py-[6px]">
             Save
-          </button>
+          </SubmitButton>
           {(modState.ok || modState.error) && (
             <span role={modState.error ? "alert" : "status"} className={`w-full text-[11px] ${modState.error ? "text-red-800" : "text-faint"}`}>
               {modState.error ?? modState.ok}
@@ -139,9 +140,9 @@ export function StoryActions({
                 <input id={id("md")} name="maxDepth" type="number" min={2} max={200} defaultValue={maxDepth ?? ""} className="field !w-24 !py-2 !text-sm" />
               </div>
             </div>
-            <button type="submit" className="btn-secondary" disabled={limitPending}>
+            <SubmitButton className="btn-secondary">
               Save limits
-            </button>
+            </SubmitButton>
             {(limitState.error || limitState.fieldErrors) && (
               <p role="alert" className="text-xs text-red-800">
                 {limitState.error ?? Object.values(limitState.fieldErrors ?? {}).flat()[0]}
