@@ -140,6 +140,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Runs on every page, API route and prefetch (prefetches included on purpose, so no
-  // request can reach a page without passing the checks above).
-  matcher: ["/((?!_next/static|favicon.ico|icon.svg|media/).*)"],
+  // request can reach a page without passing the checks above). Vercel's own analytics
+  // endpoints (/_vercel/insights/*) are skipped: they never reach the app's pages.
+  matcher: ["/((?!_next/static|_vercel/|favicon.ico|icon.svg|media/).*)"],
 };

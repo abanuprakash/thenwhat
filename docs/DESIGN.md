@@ -142,6 +142,7 @@ Motion confirms what you did and helps you notice where things are. It never per
 | `animate-count` | A number changing |
 | `lift` / `press` | Hover lift and press settle on buttons and cards |
 | `skeleton` | Loading shimmer |
+| `nav-bar` / `nav-marker` / `nav-fab` | The mobile bottom nav only (`components/BottomNav.tsx`): the cream marker glides to the chosen tab the moment it's tapped, the bar tucks away while scrolling down and returns on scroll up or near the end, it steps aside while the keyboard is open, the Write button's plus turns a quarter on press and a single gold ring ripples out on arriving at the writing screen. Icons rebuild as their tab becomes active (`ic-draw` lines draw in, `ic-pop` parts land, then the fill settles, all under 600ms) and the tab you leave lets go with a small exhale (`sb-icon-letgo`) |
 
 Rules:
 - **Short:** nothing over 600ms except a one-time drawing (the path map).
@@ -154,7 +155,7 @@ Rules:
 
 - **Breakpoint:** 760px. `mobile:` (≤760) and `desk:` (≥761) in Tailwind.
 - **Phones:**
-  - The bottom nav replaces the header links.
+  - The bottom nav replaces the header links. Write is always in the exact centre and shown to everyone (guests go to sign in, readers to "become an author"); Home and Tree sit on the left, Profile and Dashboard on the right. Every tab is at least 52px tall and carries `aria-current="page"` when it's the page you're on; Profile only lights up on your own profile.
   - Tables become stacked cards. Render a separate list rather than restyling the table, and use an `idPrefix` so ids stay unique.
   - Sidebars drop below the main content.
   - Leave `pb-24` at the end of pages so the bottom nav doesn't cover anything.
