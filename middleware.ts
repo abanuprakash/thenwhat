@@ -140,7 +140,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Runs on every page, API route and prefetch (prefetches included on purpose, so no
-  // request can reach a page without passing the checks above). Vercel's own analytics
-  // endpoints (/_vercel/insights/*) are skipped: they never reach the app's pages.
-  matcher: ["/((?!_next/static|_vercel/|favicon.ico|icon.svg|media/).*)"],
+  // request can reach a page without passing the checks above). Skipped:
+  // - Vercel's own analytics endpoints (/_vercel/insights/*): they never reach the app's pages.
+  // - The live-update check (/api/stories/<id>/version): a public answer with no session, cached
+  //   for a second at Vercel's CDN and shared by everyone reading that story. It does its own
+  //   checks (id format, rate limit) and only reads as a guest, so the middleware adds nothing,
+  //   and skipping it halves what each check costs.
+  matcher: ["/((?!_next/static|_vercel/|favicon.ico|icon.svg|media/|api/stories/[^/]+/version$).*)"],
 };

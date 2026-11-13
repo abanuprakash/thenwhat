@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { createInvite } from "@/app/actions";
 import { BusyButton } from "@/components/Pending";
 import { safely } from "@/lib/client-action";
@@ -75,7 +75,7 @@ export function InviteManager({ siteUrl, canCreate, invites }: { siteUrl: string
         {invites.map((i) => (
           <li key={i.token} className="flex items-center justify-between border-b border-black/[.06] py-3">
             <span className="text-sm font-medium text-ink">
-              {i.invitee ? <Link href={`/u/${i.invitee}`}>@{i.invitee}</Link> : <span className="font-mono text-xs text-faint">…{i.token.slice(-6)}</span>}
+              {i.invitee ? <IntentLink href={`/u/${i.invitee}`}>@{i.invitee}</IntentLink> : <span className="font-mono text-xs text-faint">…{i.token.slice(-6)}</span>}
             </span>
             <span className="flex items-center gap-3">
               {i.status === "Pending" && (

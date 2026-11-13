@@ -33,7 +33,7 @@ Leave `.env.local` open; you'll fill it in at step 4.
 
 ## 3. Create the database
 
-The whole database (tables, triggers, security rules and functions) lives in six SQL files in `supabase/migrations/`. Pick one of these two ways to run them.
+The whole database (tables, triggers, security rules and functions) lives in seven SQL files in `supabase/migrations/`. Pick one of these two ways to run them.
 
 **Option A: paste into the SQL editor (easiest)**
 
@@ -44,6 +44,7 @@ The whole database (tables, triggers, security rules and functions) lives in six
 5. Then `20261112000004_dashboard_limits.sql`. This adds the dashboard, the story limits, requests and the activity log.
 6. Then `20261112000005_plans_approvals_security.sql`. This adds plans, line approval, edits, onboarding and rate limits.
 7. Then `20261113000001_live_updates.sql`. This adds the live-updates switch and interval to Dashboard → Settings.
+8. Then `20261113000002_votes_dont_refresh_readers.sql`. Votes stop reloading open reading pages.
 
 Run them in that order. Each one builds on the one before.
 

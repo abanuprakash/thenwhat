@@ -1,6 +1,7 @@
 import "server-only";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 
 /** The visitor's IP as seen by Vercel (falls back to "unknown" locally). */
 export async function clientIp(): Promise<string> {
@@ -12,8 +13,9 @@ export async function clientIp(): Promise<string> {
  * Fixed-window rate limit stored in Postgres (check_rate_limit).
  * Returns true when the action is allowed. Fails closed if the check itself errors.
  */
-export async function rateLimit(key: string, max: number, windowSeconds: number): Promise<boolean> {
-  const supabase = await createClient();
+export async function rateLimit(key: string, max: number, windowSeconds: number, opts: { asGuest?: boolean } = {}): Promise<boolean> {
+  // asGuest: no cookies are read or refreshed (for public, cacheable answers).
+  const supabase = opts.asGuest ? createPublicClient() : await createClient();
   const { data, error } = await supabase.rpc("check_rate_limit", {
     p_key: key.slice(0, 200),
     p_max: max,
@@ -45,9 +47,9 @@ export const LIMITS = {
   pollPerIp: [600, 60],
 } as const satisfies Record<string, readonly [number, number]>;
 
-export async function limit(name: keyof typeof LIMITS, subject: string): Promise<boolean> {
+export async function limit(name: keyof typeof LIMITS, subject: string, opts: { asGuest?: boolean } = {}): Promise<boolean> {
   const [max, windowSeconds] = LIMITS[name];
-  return rateLimit(`${name}:${subject}`, max, windowSeconds);
+  return rateLimit(`${name}:${subject}`, max, windowSeconds, opts);
 }
 
 /**

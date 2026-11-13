@@ -32,7 +32,8 @@ export function LiveRefresh({ storyId, seconds }: { storyId: string; seconds: nu
       if (stopped || waiting || !visible()) return;
       waiting = true;
       try {
-        const res = await fetch(`/api/stories/${storyId}/version`, { cache: "no-store" });
+        // The answer is shared for a second at Vercel's CDN; the browser itself never keeps it.
+        const res = await fetch(`/api/stories/${storyId}/version`);
         if (res.status === 429) {
           every = Math.min(every * 2, 60_000);
         } else if (res.ok) {

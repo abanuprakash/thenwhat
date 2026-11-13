@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { getPlans, requireAdmin } from "@/lib/queries";
 import { UserPlanForm } from "@/components/dashboard/UserPlanForm";
 import { cleanSearch, getDashboardUsers, pageFrom, PAGE_SIZE } from "@/lib/dashboard-queries";
@@ -76,9 +76,9 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                   <div className="mb-2 flex items-center gap-3">
                     <Avatar url={u.avatar_url} handle={u.handle} size={36} />
                     <div className="min-w-0">
-                      <Link href={`/u/${u.handle}`} className="block truncate text-sm font-semibold text-ink hover:text-gold">
+                      <IntentLink href={`/u/${u.handle}`} className="block truncate text-sm font-semibold text-ink hover:text-gold">
                         @{u.handle}
-                      </Link>
+                      </IntentLink>
                       <span className="text-xs text-faint">
                         joined {timeAgo(u.created_at)}
                         {u.invited_by_handle && <> · invited by @{u.invited_by_handle}</>}
@@ -115,9 +115,9 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                         <div className="flex items-center gap-3">
                           <Avatar url={u.avatar_url} handle={u.handle} size={32} />
                           <div>
-                            <Link href={`/u/${u.handle}`} className="font-semibold text-ink hover:text-gold">
+                            <IntentLink href={`/u/${u.handle}`} className="font-semibold text-ink hover:text-gold">
                               @{u.handle}
-                            </Link>
+                            </IntentLink>
                             <div className="text-xs text-faint">
                               {u.display_name && u.display_name !== u.handle && <>{u.display_name} · </>}
                               joined {timeAgo(u.created_at)}

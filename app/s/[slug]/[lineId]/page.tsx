@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { IntentLink } from "@/components/IntentLink";
 import { notFound } from "next/navigation";
 import {
   BRANCH_PAGE,
@@ -101,7 +102,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
             const current = a.id === lineId;
             return (
               <span key={a.id} className="flex items-center gap-[6px]">
-                <Link
+                <IntentLink
                   href={`/s/${slug}/${a.id}`}
                   aria-current={current ? "page" : undefined}
                   className={`rounded-full px-[10px] py-1 text-xs transition-colors duration-200 ${
@@ -109,7 +110,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
                   } hover:text-ink`}
                 >
                   {i === 0 ? story.title : truncate(a.text, 22)}
-                </Link>
+                </IntentLink>
                 {i < ancestors.length - 1 && <span aria-hidden="true" className="text-[11px] text-[#A89C7E]">›</span>}
               </span>
             );
@@ -231,12 +232,12 @@ export default async function ReadingPage({ params, searchParams }: Props) {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <Link
+                        <IntentLink
                           href={`/s/${slug}/${b.id}`}
                           className="m-0 block font-serif text-[15.5px] leading-normal text-ink after:absolute after:inset-0 after:content-[''] hover:text-ink"
                         >
                           {b.text}
-                        </Link>
+                        </IntentLink>
                         <span className="text-[11px] font-medium text-faint">
                           by @{b.author?.handle}
                           {b.status === "pending" && <span className="font-semibold text-gold"> · waiting for approval</span>}
