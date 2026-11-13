@@ -73,6 +73,20 @@ supabase/
 e2e/                              Playwright smoke tests
 ```
 
+## Working with Claude Code
+
+Open the folder in VS Code with the Claude Code extension. Claude reads `CLAUDE.md` automatically.
+
+| Type it | What happens |
+|---|---|
+| `/new-feature <what you want>` | Plans the feature, waits for your OK, then builds database → actions → screens → docs → checks |
+| `/check` | Types, lint, database tests, build, audit, with one line per check |
+| `/ui-check / /pricing` | Phone and desktop screenshots, plus layout and accessibility flags, reviewed against the design guide |
+| `/review` | Security and design reviewers go over your changes (no edits) |
+| `/ship` | Checks, review, migration and env-var reminders, a commit message, then asks before committing |
+
+Claude also uses these on its own when a task calls for them: `db-migration`, `plan-feature`, `server-action`, `ui-screen`, `write-copy` and `security-review` (in `.claude/skills/`). The design guide is `docs/DESIGN.md`. A hook stops Claude from editing migrations that are already committed, and `.env` files are off-limits to it.
+
 ## Scripts
 
 ```bash

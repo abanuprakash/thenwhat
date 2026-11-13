@@ -9,3 +9,8 @@ next-env.d.ts
 test-results
 playwright-report
 supabase/.temp
+
+# Claude Code
+.ui-check
+CLAUDE.local.md
+.claude/settings.local.json
