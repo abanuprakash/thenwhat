@@ -91,7 +91,7 @@ function filter(rows, params) {
 
 const ROLE = process.env.MOCK_ROLE || "admin";
 profiles[0].role = ROLE;
-const settings = { max_branches_per_line: 6, max_depth: 5, lines_per_hour: 10, invite_slots: 3, updated_at: iso(3) };
+const settings = { max_branches_per_line: 6, max_depth: 5, lines_per_hour: 10, invite_slots: 3, live_updates: true, poll_seconds: 1, updated_at: iso(3) };
 const requests = [
   { id: uuid(700), kind: "more_branches", story_id: S1, line_id: l1, requester_id: K, message: "There's a whole thread about the engineer we haven't explored. One more branch would let us open it.", status: "pending", granted: null, decision_note: null, decided_at: null, created_at: iso(2), requester: { handle: "kai_ondo" }, decider: null, story: { title: "The Last Signal", slug: "the-last-signal-abc123", author_id: P }, line: { text: lines[0].text, depth: 0 } },
   { id: uuid(701), kind: "more_depth", story_id: S1, line_id: l4b, requester_id: K, message: "This path deserves a real ending, needs two more lines.", status: "approved", granted: 2, decision_note: "Go for it", decided_at: iso(1), created_at: iso(20), requester: { handle: "kai_ondo" }, decider: { handle: "noemi_vance" }, story: { title: "The Last Signal", slug: "the-last-signal-abc123", author_id: P }, line: { text: lines[10].text, depth: 3 } },
@@ -141,6 +141,17 @@ http.createServer(async (req, res) => {
   if (p === "/rest/v1/rpc/review_line") return send(200, JSON.parse(body || "{}").p_approve ? "line.approved" : "line.rejected");
   if (p === "/rest/v1/rpc/my_entitlements") return send(200, ent());
   if (p === "/rest/v1/rpc/check_rate_limit") return send(200, true);
+  if (p === "/rest/v1/rpc/update_settings") {
+    const a = JSON.parse(body || "{}");
+    Object.assign(settings, { max_branches_per_line: a.p_max_branches, max_depth: a.p_max_depth, lines_per_hour: a.p_lines_per_hour });
+    if (typeof a.p_live_updates === "boolean") settings.live_updates = a.p_live_updates;
+    if (Number.isInteger(a.p_poll_seconds)) settings.poll_seconds = a.p_poll_seconds;
+    return send(200, null);
+  }
+  if (p === "/rest/v1/rpc/story_poll") {
+    const row = { version: 1, live_updates: settings.live_updates, poll_seconds: settings.poll_seconds };
+    return send(200, (req.headers.accept ?? "").includes("vnd.pgrst.object") ? row : [row]);
+  }
   if (p === "/rest/v1/rpc/handle_available") return send(200, true);
   if (p === "/rest/v1/rpc/lines_per_hour") return send(200, 10);
   if (p === "/rest/v1/rpc/lines_last_hour") return send(200, 0);
@@ -171,7 +182,7 @@ http.createServer(async (req, res) => {
     if (req.method === "DELETE") {
       const gone = filter(mem, url.searchParams);
       for (const g of gone) { mem.splice(mem.indexOf(g), 1); if (key === "line_id") { const l = lines.find((x) => x.id === g.line_id); if (l) { if (g.value === 1) l.up--; else l.down--; } } }
-      return send(204, null);
+      return send(200, null);
     }
     const rows = filter(mem, url.searchParams);
     if (req.method === "HEAD" || (req.headers.prefer ?? "").includes("count=")) {

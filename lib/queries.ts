@@ -20,6 +20,14 @@ export const getViewer = cache(async (): Promise<Viewer> => {
   return { id: user.id, email: user.email ?? null, profile: profile as Profile };
 });
 
+/** Whether open stories check for new lines, and how often (Dashboard → Settings). Off if it can't be read. */
+export async function getLiveUpdates(): Promise<{ on: boolean; seconds: number }> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("app_settings").select("live_updates, poll_seconds").maybeSingle();
+  const row = data as { live_updates: boolean; poll_seconds: number } | null;
+  return row ? { on: row.live_updates, seconds: row.poll_seconds } : { on: false, seconds: 15 };
+}
+
 /** For admin-only pages: middleware gates them too, this is the second lock. */
 export async function requireAdmin() {
   const { redirect } = await import("next/navigation");

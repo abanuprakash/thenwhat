@@ -227,3 +227,46 @@ end $$;
 
 -- Put site rules back to "no limit" for anything that runs after this file.
 update public.app_settings set max_branches_per_line = null, max_depth = null;
+
+------------------------------------------------------------------ live updates (polling)
+do $$ begin
+  assert (select live_updates from public.app_settings), 'live updates on by default';
+  assert (select poll_seconds from public.app_settings) = 1, 'checks every second by default';
+end $$;
+
+select pg_temp.as_user('finn');
+set role authenticated;
+select pg_temp.expect_fail($$ select public.update_settings(null, null, 10, true, false, 5) $$, 'author changes live updates');
+reset role;
+
+select pg_temp.as_user('erin');
+set role authenticated;
+select pg_temp.expect_fail($$ select public.update_settings(null, null, 10, true, true, 0) $$, 'check every 0 s rejected');
+select pg_temp.expect_fail($$ select public.update_settings(null, null, 10, true, true, 301) $$, 'check every 301 s rejected');
+select public.update_settings(null, null, 10, true, false, 30);
+do $$ begin
+  assert not (select live_updates from public.app_settings), 'live updates switched off';
+  assert (select poll_seconds from public.app_settings) = 30, 'interval saved';
+end $$;
+-- Callers that don't pass the new arguments leave them alone.
+select public.update_settings(null, null, 10, true);
+do $$ begin
+  assert not (select live_updates from public.app_settings), 'still off';
+  assert (select poll_seconds from public.app_settings) = 30, 'interval kept';
+end $$;
+select public.update_settings(null, null, 10, true, true, 1);
+reset role;
+
+do $$ begin
+  assert (select count(*) from public.activity where action = 'settings.changed'
+          and details ? 'poll_seconds') > 0, 'interval change is in the activity log';
+end $$;
+
+-- Anyone reading a story, signed in or not, gets its counter and the setting in one call.
+set role anon;
+do $$ declare r record; begin
+  select * into r from public.story_poll((select id from public.stories order by created_at limit 1));
+  assert r.version is not null and r.live_updates and r.poll_seconds = 1, 'guest can poll';
+  assert not exists (select 1 from public.story_poll('00000000-0000-0000-0000-000000000000')), 'unknown story gives nothing';
+end $$;
+reset role;

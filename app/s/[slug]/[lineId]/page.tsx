@@ -11,6 +11,7 @@ import {
   getStoryBySlug,
   getSubtree,
   getEntitlements,
+  getLiveUpdates,
   getViewer,
   hasFeature,
   isFollowing,
@@ -52,7 +53,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
   const show = Math.min(Math.max(Number(rawShow) || BRANCH_PAGE, BRANCH_PAGE), 100);
   const treeLevels = Math.min(line.depth + 2, 8);
 
-  const [ancestors, { branches, hasMore }, following, tree, capRaw, pendingKinds, ent] = await Promise.all([
+  const [ancestors, { branches, hasMore }, following, tree, capRaw, pendingKinds, ent, live] = await Promise.all([
     getAncestors(lineId),
     getBranches(lineId, show),
     isFollowing(viewer, story.id),
@@ -60,6 +61,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
     getCapacity(lineId),
     getMyPendingKinds(viewer, lineId),
     getEntitlements(),
+    getLiveUpdates(),
   ]);
   const cap = describeCapacity(capRaw);
   const myVotes = await getMyVotes(viewer, [lineId, ...branches.map((b) => b.id)]);
@@ -82,7 +84,8 @@ export default async function ReadingPage({ params, searchParams }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 pb-24 pt-8 desk:px-6">
-      <LiveRefresh storyId={story.id} />
+      {/* Live updates: only here, on the reading page, and only when switched on in Dashboard → Settings. */}
+      {live.on && <LiveRefresh storyId={story.id} seconds={live.seconds} />}
 
       {!active && (
         <div role="status" className="mb-5 rounded-[3px] border border-black/10 bg-chip px-4 py-3 text-sm text-ink">

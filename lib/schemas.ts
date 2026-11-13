@@ -71,6 +71,8 @@ export const settingsSchema = z.object({
   maxDepth: optionalInt(2, 200, "At least 2 lines."),
   linesPerHour: z.coerce.number().int("Use a whole number.").min(1).max(500),
   autoApprove: z.enum(["yes", "no"]),
+  liveUpdates: z.enum(["on", "off"]),
+  pollSeconds: z.coerce.number().int("Use a whole number of seconds.").min(1, "At least 1 second.").max(300, "At most 300 seconds (5 minutes)."),
 });
 
 export const storyLimitsSchema = z.object({

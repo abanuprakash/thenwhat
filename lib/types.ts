@@ -74,6 +74,10 @@ export type Settings = {
   max_depth: number | null;
   lines_per_hour: number;
   auto_approve: boolean;
+  /** Open stories check for new lines while someone is reading. */
+  live_updates: boolean;
+  /** How often they check, in seconds (1–300). */
+  poll_seconds: number;
   updated_at: string;
 };
 

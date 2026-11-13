@@ -49,7 +49,7 @@ app/
   actions.ts                   reader/author actions
   account-actions.ts           sign-in, onboarding, profile, avatar
   dashboard-actions.ts         review, moderation, settings, plans, roles
-  api/stories/[id]/version     polling endpoint (replaces realtime)
+  api/stories/[id]/version     live-update check for the reading page (on/off and interval: Dashboard → Settings)
 components/                    UI (dashboard/ for dashboard pieces)
 lib/
   queries.ts dashboard-queries.ts   all reads

@@ -1,40 +1,67 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { startTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 /**
- * Keeps an open story fresh: every 15 seconds (only while the tab is visible) it asks our
- * server whether the story changed, and re-renders the page if so. No database connection
- * from the browser.
+ * Live updates for the reading page: while this story is open and the tab is visible, it asks
+ * our server every `seconds` whether the story changed, and re-renders the page if so.
+ * - Rendered only on the reading page, and only when live updates are on (Dashboard → Settings).
+ * - Stops while the tab is hidden; checks once straight away when it's shown again.
+ * - Never sends a check while the previous one is still waiting.
+ * - Follows the setting live: each answer says how long to wait next, or to stop.
+ * - If the server says "slow down" (429), it waits twice as long, up to a minute.
+ * No database connection from the browser.
  */
-export function LiveRefresh({ storyId }: { storyId: string }) {
+export function LiveRefresh({ storyId, seconds }: { storyId: string; seconds: number }) {
   const router = useRouter();
-  const last = useRef<number | null>(null);
 
   useEffect(() => {
     let stopped = false;
-    const check = async () => {
-      if (document.visibilityState !== "visible") return;
+    let waiting = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let last: number | null = null;
+    let every = Math.max(1, seconds) * 1000;
+
+    const visible = () => document.visibilityState === "visible";
+    const schedule = () => {
+      clearTimeout(timer);
+      if (!stopped && visible()) timer = setTimeout(check, every);
+    };
+
+    async function check() {
+      if (stopped || waiting || !visible()) return;
+      waiting = true;
       try {
         const res = await fetch(`/api/stories/${storyId}/version`, { cache: "no-store" });
-        if (!res.ok) return;
-        const { v } = (await res.json()) as { v: number };
-        if (last.current !== null && v !== last.current && !stopped) router.refresh();
-        last.current = v;
+        if (res.status === 429) {
+          every = Math.min(every * 2, 60_000);
+        } else if (res.ok) {
+          const { v, every: next } = (await res.json()) as { v: number; every: number | null };
+          if (next === null) {
+            stopped = true; // switched off in the dashboard
+            return;
+          }
+          every = next * 1000;
+          if (last !== null && v !== last && !stopped) startTransition(() => router.refresh());
+          last = v;
+        }
       } catch {
-        /* offline: try again next time */
+        /* offline or the request was cut off: try again next time */
+      } finally {
+        waiting = false;
+        schedule();
       }
-    };
+    }
+
+    const onVisibility = () => (visible() ? check() : clearTimeout(timer));
     check();
-    const timer = setInterval(check, 15000);
-    const onVisible = () => document.visibilityState === "visible" && check();
-    document.addEventListener("visibilitychange", onVisible);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       stopped = true;
-      clearInterval(timer);
-      document.removeEventListener("visibilitychange", onVisible);
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [storyId, router]);
+  }, [storyId, seconds, router]);
 
   return null;
 }
