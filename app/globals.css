@@ -101,6 +101,33 @@ a { @apply text-gold hover:text-gold-dark; transition: color var(--dur-fast) var
   details > summary::marker { color: #8C600A; }
 }
 
+/* ── Mobile bottom nav ──────────────────────────────────────────────────── */
+/* Tucks away while reading (scroll down), returns on scroll up. */
+.nav-bar {
+  box-shadow: 0 -6px 18px -14px rgba(60, 40, 10, 0.35);
+  transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur-base) var(--ease-soft);
+}
+.nav-bar[data-hidden] { transform: translateY(calc(100% + 12px)); opacity: 0; pointer-events: none; }
+/* The cream marker glides to the chosen tab (no slide on first paint). */
+.nav-marker { transition: opacity var(--dur-base) var(--ease-soft); will-change: transform; }
+.nav-marker[data-placed] { transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur-base) var(--ease-soft); }
+.nav-item { -webkit-tap-highlight-color: transparent; transition: color var(--dur-base) var(--ease-soft); }
+.nav-item:focus-visible { outline-offset: -2px; border-radius: 8px; }
+.nav-icon { transition: transform var(--dur-base) var(--ease-out); }
+.nav-item[data-on] .nav-icon { transform: translateY(-1px); }
+.nav-item:active .nav-icon { transform: scale(0.9); transition-duration: var(--dur-fast); }
+.nav-fill, .nav-leaf { transition: opacity var(--dur-base) var(--ease-soft), fill var(--dur-base) var(--ease-soft); }
+/* The Write button: a raised gold disc; the plus turns a quarter as you press it, and a soft ring shows while you're writing. */
+.nav-fab {
+  box-shadow: 0 6px 14px -6px rgba(112, 76, 6, 0.55), 0 0 0 4px #F6F1E7;
+  transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-base) var(--ease-soft), background-color var(--dur-fast) var(--ease-soft);
+}
+.nav-plus { transition: transform var(--dur-slow) var(--ease-out); }
+.nav-item:hover .nav-fab { background-color: #704C06; }
+.nav-item:active .nav-fab { transform: scale(0.92); box-shadow: 0 2px 6px -3px rgba(112, 76, 6, 0.5), 0 0 0 4px #F6F1E7; }
+.nav-item:active .nav-plus { transform: rotate(90deg); }
+.nav-fab[data-on] { background-color: #704C06; box-shadow: 0 6px 14px -6px rgba(112, 76, 6, 0.55), 0 0 0 4px #F6F1E7, 0 0 0 6px #D9C48A; }
+
 /* React Flow, themed to the paper palette */
 .react-flow__attribution { background: transparent !important; }
 .react-flow__node { transition: transform var(--dur-base) var(--ease-soft); }
