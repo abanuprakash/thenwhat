@@ -115,6 +115,7 @@ All in `app/globals.css` (`@layer components`) or `components/`.
 | `BotFields` | Hidden spam filters, in every public form. |
 | `Spark` | Writing nudges in the composer. |
 | `SubmitButton`, `BusyButton`, `NativeForm`, `Dots` (`components/Pending.tsx`) | Every button that sends something. The pressed button shows the "and then…" dots (with an optional word like "Saving"), every button in that form is disabled so nothing is sent twice, and the label keeps its width. `SubmitButton` goes inside forms (it reads the form's status); `NativeForm` wraps plain posts to a URL; `BusyButton` takes `busy` from `useTransition`. Votes and follows stay instant and simply ignore taps while saving. |
+| `ConfirmButton` (`components/Confirm.tsx`) | Decisions that need a second look: approve, reject, make inactive, reactivate, publish a story. A centred dialog on wide screens, a bottom sheet on phones (drag the handle down, tap outside or Esc to cancel). It always says **What happens** as a short list: gold + for what starts, muted − for what stops, a dot for good-to-know. Write outcomes from the person's side, in plain words, and only promise what the database actually does. Use `caution` when something is taken away (Cancel gets the focus). |
 | `FeedTabs` | The home feed tabs: gliding underline, dimmed list while loading, new list slides in from the side you moved towards. |
 
 **States every screen needs:**
@@ -123,6 +124,30 @@ All in `app/globals.css` (`@layer components`) or `components/`.
 - **Error:** what happened and what to try, in `role="alert"`.
 - **Locked by plan:** `<Locked feature="…" />`, which links to Pricing.
 - **Waiting for approval:** a cream note, "Waiting for approval", visible only to the writer, the story's starter and admins.
+
+## 7b. When things go wrong
+
+Nothing that goes wrong may replace the page, lose what someone typed, or leave a button stuck.
+
+| Situation | What people see | Where |
+|---|---|---|
+| Offline | "The thread snapped" note under the header; "Back on the thread" when it returns | `ConnectionNotice` |
+| A link tapped while offline | The page stays; toast "That page is out of reach" | `ConnectionNotice` |
+| A form that couldn't reach us | A card with the snapped thread: "That didn't reach us. Nothing was saved…"; typed text stays | `guard()` + `FormError` + `useKeepOnError` |
+| Our server failed | The same card with the tangled question mark: "Our side tripped" | `FormError` |
+| A vote or follow that failed | It flips back; toast "Your vote didn't land" / "That star didn't stick" with **Try again** | `safely()` + `toast()` |
+| A confirmation that failed | The dialog stays open, explains, and its button becomes **Try again** | `ConfirmButton error` |
+| A plain post (Google sign-in) offline | Stays put; toast "That can't go anywhere yet" | `NativeForm` |
+| A wrong photo | Checked before upload: size (with the actual MB) and type | `AvatarPicker` |
+| A page that failed to load | "This page lost its thread", Try again / Back to stories, reference code; an offline version | `app/error.tsx`, `app/global-error.tsx` |
+
+Rules:
+- **Say whose fault it is.** "You're offline", "the connection dropped", "something went wrong on our side". Never blame the person for our failure.
+- **Always say what happened to their work:** "Nothing was saved", "nothing changed".
+- **Offer the way forward:** Try again, Back to stories, or wait for the connection.
+- **Drawings** (`components/Illustrations.tsx`): `SnappedThread` for connection problems, `RejoinedThread` for back online, `TangledBranch` for our errors. They animate once and are decorative; the words carry the meaning.
+- **Toasts** are for failures with nowhere else to go (votes, follows, links). One at a time, 7 seconds, `role="alert"`. Never for success.
+- **New client code** that calls a Server Action uses `guard()` (forms) or `safely()` (clicks) from `lib/client-action.ts`, and uncontrolled forms spread `useKeepOnError(state)`.
 
 ## 8. Motion
 
@@ -144,6 +169,9 @@ Motion confirms what you did and helps you notice where things are. It never per
 | `animate-count` | A number changing |
 | `lift` / `press` | Hover lift and press settle on buttons and cards |
 | `skeleton` | Loading shimmer |
+| `confirm` / `confirm-panel` | Dialog fades and rises 10px (260ms); the phone sheet slides up (360ms) and follows your finger when dragged; outcomes arrive one after another |
+| `vote-nudge-up` / `vote-nudge-down` / `vote-ring` / `count-up` / `count-down` | Votes: the arrow nudges the way you voted with a soft ring, and the count rolls up from below or down from above |
+| `star-on` / `star-sparks` / `star-off` | Follow: the star turns one point (72°) with six tiny sparks; unfollow settles |
 | `dots` (via `Dots`) | Something is being sent: three dots rise one after another, "and then…" |
 | `feed-bar` / `feed-enter` | Feed tabs: the underline glides and breathes while loading; the new list slides in 18px from the side you moved towards |
 | `lm-draw` / `lm-pop` | The sign-in page's mark draws itself once: the question, then the branches, then the two dots |

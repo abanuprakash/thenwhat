@@ -54,6 +54,9 @@ Then What (formerly StoryBranch) is a collaborative storytelling site:
 | 13 Nov | **First users sign in with Google only** (`EMAIL_SIGNIN=off`). Resend plus a custom domain come before the wider launch | Supabase's built-in sender only emails team members, 2 an hour. `vercel.app` can't be verified in Resend |
 | 13 Nov | **Code moved to GitHub** (`abanuprakash/thenwhat`). Changes go on branches as pull requests | Banu gave Claude repo access so he no longer applies changes by hand |
 | 13 Nov | **Vercel Web Analytics and Speed Insights** (`@vercel/analytics`, `@vercel/speed-insights`, `components/VercelInsights.tsx`). Cookieless page views and real-user Core Web Vitals; for both, `/auth/*` is never sent, invite paths become `/invite/:token`, and query strings and fragments are dropped. Middleware skips `/_vercel/*` | Banu wanted traffic numbers; the scrubbing keeps login codes, invite tokens and `?next=` values out of a third-party dashboard. Mention it in the privacy policy |
+| 13 Nov | **Failure states:** every action call is guarded (offline, dropped connection, server error) and shows a message in the Then What voice with small drawings; typed text survives failed submits; a connection note; error pages with an offline version; photos checked before upload; a mock data server and failure tests in the repo | Banu asked for all failure and negative cases to be handled, shown creatively |
+| 13 Nov | **Known issue: saves can hang on Next 15.5.** In production builds, about half of fast Server Action saves leave the button pending even though the server answered (React bug bundled in Next 15.5, fixed in React in Jan 2026). Next 15.3.9: 12/12 saves worked; Next 16.4.6 bundles the fixed React. Fixed by upgrading to Next 16 (below) | Found while testing failure states; it predates them |
+| 13 Nov | **Upgraded to Next.js 16.4.6** (React 19.3.1, Turbopack builds, eslint-config-next 16 flat config). Kept `middleware.ts` for now (deprecated name, still runs on the edge runtime); renaming to `proxy.ts` (Node runtime) is a separate step. Removed the webpack-only warning filter; added `data-scroll-behavior="smooth"` so page changes still jump to the top. Fixed the components the new React lint rules flagged | Fixes the stuck-save bug (24/24 saves vs 8/12 on 15.5); one migration instead of two. Next 16 prefetches in smaller pieces: about 2× more background prefetches and 1.3–1.8× more data calls per page view, mostly the middleware's session and profile checks. Trimming that is an open item |
 | 13 Nov | **Claude Code kit** added: CLAUDE.md, the design guide, skills, workflows, reviewer agents and a hook protecting committed migrations | To keep working with Claude in VS Code |
 
 ## Open items and what's next
@@ -64,6 +67,10 @@ Then What (formerly StoryBranch) is a collaborative storytelling site:
 - [ ] Two-factor sign-in for admins (Supabase MFA).
 - [ ] Supabase Pro (no pausing, daily backups).
 - [ ] Cloudflare Turnstile on sign-in (setup step 10b).
+
+**Next.js 16 follow-ups**
+- [ ] Rename `middleware.ts` to `proxy.ts` (Node runtime) and re-test every protected route.
+- [ ] Trim prefetch cost: e.g. skip the middleware's profile read for prefetches of public pages, or turn off viewport prefetching on long lists. Measure with `scripts/mock-supabase.mjs` (`MOCK_LOG=1`).
 
 **Soon after**
 - [ ] Razorpay payments (UPI and cards), switching plans automatically.

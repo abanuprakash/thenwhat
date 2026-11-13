@@ -1,11 +1,14 @@
 "use client";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { setStoryLimits, setStoryModeration, setStoryStatus } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import type { StoryStatus } from "@/lib/types";
 import { SubmitButton } from "@/components/Pending";
+import { ConfirmButton } from "@/components/Confirm";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
-/** Inactivate / reactivate with a confirmation step, and (admins) per-story limits. */
+/** Inactivate / reactivate (each confirmed in a dialog or bottom sheet), and per-story rules. */
 export function StoryActions({
   storyId,
   title,
@@ -16,6 +19,7 @@ export function StoryActions({
   maxBranches,
   maxDepth,
   idPrefix,
+  adminOverride = false,
 }: {
   storyId: string;
   title: string;
@@ -30,71 +34,80 @@ export function StoryActions({
   maxDepth: number | null;
   /** The page renders a phone and a desktop copy; this keeps their ids unique. */
   idPrefix: string;
+  /** An admin acting on someone else's story (only an admin can then reactivate it). */
+  adminOverride?: boolean;
 }) {
-  const [confirming, setConfirming] = useState(false);
-  const [statusState, statusAction] = useActionState<FormState, FormData>(setStoryStatus, {});
-  const [limitState, limitAction] = useActionState<FormState, FormData>(setStoryLimits, {});
-  const [modState, modAction] = useActionState<FormState, FormData>(setStoryModeration, {});
+  const [statusState, statusAction] = useActionState<FormState, FormData>(guard(setStoryStatus), {});
+  const statusKeep = useKeepOnError(statusState);
+  const [limitState, limitAction] = useActionState<FormState, FormData>(guard(setStoryLimits), {});
+  const limitKeep = useKeepOnError(limitState);
+  const [modState, modAction] = useActionState<FormState, FormData>(guard(setStoryModeration), {});
+  const modKeep = useKeepOnError(modState);
   const id = (s: string) => `${idPrefix}-${s}-${storyId}`;
   const next: StoryStatus = status === "active" ? "inactive" : "active";
 
   return (
     <div className="space-y-2">
-      {!confirming ? (
-        <button
-          type="button"
-          className={next === "inactive" ? "btn-secondary" : "btn-outline-gold"}
-          onClick={() => setConfirming(true)}
-          aria-label={`${next === "inactive" ? "Make inactive" : "Reactivate"}: ${title}`}
-        >
-          {next === "inactive" ? "Make inactive" : "Reactivate"}
-        </button>
-      ) : (
-        <form
-          action={async (fd) => {
-            await statusAction(fd);
-            setConfirming(false);
-          }}
-          className="animate-reveal space-y-2 rounded-[3px] bg-sand p-3"
-        >
-          <input type="hidden" name="storyId" value={storyId} />
-          <input type="hidden" name="status" value={next} />
-          {next === "inactive" ? (
-            <>
-              <p className="text-xs text-muted">
-                Readers won&apos;t see “{title}” and nobody can add lines until it&apos;s reactivated.
-              </p>
-              <label htmlFor={id("reason")} className="eyebrow block">
-                Reason (optional, shown to the starter)
-              </label>
-              <input id={id("reason")} name="reason" maxLength={280} className="field !py-2 !text-sm" autoFocus />
-            </>
-          ) : (
-            <p className="text-xs text-muted">“{title}” will be visible and open for writing again.</p>
-          )}
-          <div className="flex gap-2">
-            <SubmitButton className="btn-primary !py-[7px] !text-xs">
-              {next === "inactive" ? "Yes, make inactive" : "Yes, reactivate"}
-            </SubmitButton>
-            <button type="button" className="btn-secondary" onClick={() => setConfirming(false)}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-      {statusState.error && (
-        <p role="alert" className="text-xs text-red-800">
-          {statusState.error}
-        </p>
-      )}
-      {statusState.ok && !confirming && (
+      <form action={statusAction} {...statusKeep}>
+        <input type="hidden" name="storyId" value={storyId} />
+        <input type="hidden" name="status" value={next} />
+        {next === "inactive" ? (
+          <ConfirmButton
+            error={statusState.error}
+            label="Make inactive"
+            className="btn-secondary"
+            ariaLabel={`Make inactive: ${title}`}
+            eyebrow="Story"
+            title="Make this story inactive?"
+            preview={title}
+            outcomes={[
+              { tone: "minus", text: "It leaves the feed, and readers can't open it." },
+              { tone: "minus", text: "Nobody can add, edit or vote on its lines." },
+              { tone: "info", text: "Nothing is deleted. Lines, votes and followers stay as they are." },
+              {
+                tone: "info",
+                text: adminOverride
+                  ? "Because an admin switched it off, only an admin can switch it back on."
+                  : "You can reactivate it whenever you like.",
+              },
+            ]}
+            confirmLabel="Make inactive"
+            pendingLabel="Saving"
+            caution
+          >
+            <label htmlFor={id("reason")} className="eyebrow block">
+              Reason (optional, shown to the story&apos;s starter)
+            </label>
+            <input id={id("reason")} name="reason" maxLength={280} className="field !py-2 !text-sm" />
+          </ConfirmButton>
+        ) : (
+          <ConfirmButton
+            error={statusState.error}
+            label="Reactivate"
+            className="btn-outline-gold"
+            ariaLabel={`Reactivate: ${title}`}
+            eyebrow="Story"
+            title="Bring this story back?"
+            preview={title}
+            outcomes={[
+              { tone: "plus", text: "It's back in the feed and open to read." },
+              { tone: "plus", text: "Writers can add lines and readers can vote again, within the story's limits." },
+              { tone: "info", text: "Lines that were waiting for approval are still in the review queue." },
+            ]}
+            confirmLabel="Reactivate"
+            pendingLabel="Saving"
+          />
+        )}
+      </form>
+      <FormError className="text-xs text-red-800">{statusState.error}</FormError>
+      {statusState.ok && (
         <p role="status" className="text-xs text-faint">
           {statusState.ok}
         </p>
       )}
 
       {canModerate && (
-        <form action={modAction} className="flex flex-wrap items-center gap-2">
+        <form action={modAction} {...modKeep} className="flex flex-wrap items-center gap-2">
           <input type="hidden" name="storyId" value={storyId} />
           <label htmlFor={id("mode")} className="sr-only">
             New lines in {title}
@@ -123,7 +136,7 @@ export function StoryActions({
       {canSetRules && (
         <details className="group">
           <summary className="cursor-pointer text-xs font-semibold text-gold hover:text-gold-dark">Story limits</summary>
-          <form action={limitAction} className="mt-2 space-y-2 rounded-[3px] bg-sand p-3">
+          <form action={limitAction} {...limitKeep} className="mt-2 space-y-2 rounded-[3px] bg-sand p-3">
             <input type="hidden" name="storyId" value={storyId} />
             <p className="text-[11px] text-faint">Leave blank to follow the site rules.</p>
             <div className="flex flex-wrap gap-3">
@@ -143,11 +156,7 @@ export function StoryActions({
             <SubmitButton className="btn-secondary">
               Save limits
             </SubmitButton>
-            {(limitState.error || limitState.fieldErrors) && (
-              <p role="alert" className="text-xs text-red-800">
-                {limitState.error ?? Object.values(limitState.fieldErrors ?? {}).flat()[0]}
-              </p>
-            )}
+            <FormError className="text-xs text-red-800">{limitState.error ?? Object.values(limitState.fieldErrors ?? {}).flat()[0]}</FormError>
             {limitState.ok && (
               <p role="status" className="text-xs text-faint">
                 {limitState.ok}

@@ -17,8 +17,8 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 export function FeedTabs({ tabs, active, children }: { tabs: Tab[]; active: string; children: ReactNode }) {
   const router = useRouter();
   const [loading, start] = useTransition();
+  // The tab tapped last; it only counts while its list is loading.
   const [chosen, setChosen] = useState(active);
-  useEffect(() => setChosen(active), [active]);
   const shown = loading ? chosen : active;
 
   // Which way did we move? The new list comes in from that side.
@@ -35,7 +35,7 @@ export function FeedTabs({ tabs, active, children }: { tabs: Tab[]; active: stri
   const navRef = useRef<HTMLElement>(null);
   const refs = useRef(new Map<string, HTMLAnchorElement>());
   const [bar, setBar] = useState<{ x: number; w: number } | null>(null);
-  const placed = useRef(false);
+  const [placed, setPlaced] = useState(false);
   const measure = useCallback(() => {
     const el = refs.current.get(shown);
     const nav = navRef.current;
@@ -50,12 +50,14 @@ export function FeedTabs({ tabs, active, children }: { tabs: Tab[]; active: stri
     return () => ro.disconnect();
   }, [measure]);
   useEffect(() => {
-    if (bar) requestAnimationFrame(() => (placed.current = true));
-  }, [bar]);
+    if (!bar || placed) return;
+    const id = requestAnimationFrame(() => setPlaced(true));
+    return () => cancelAnimationFrame(id);
+  }, [bar, placed]);
   // On a narrow screen, keep the chosen tab in view.
   useEffect(() => {
-    refs.current.get(shown)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: placed.current ? "smooth" : "auto" });
-  }, [shown]);
+    refs.current.get(shown)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: placed ? "smooth" : "auto" });
+  }, [shown, placed]);
 
   const go = (e: MouseEvent<HTMLAnchorElement>, tab: Tab) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return; // let the browser open new tabs
@@ -87,7 +89,7 @@ export function FeedTabs({ tabs, active, children }: { tabs: Tab[]; active: stri
         <span
           aria-hidden="true"
           className="feed-bar pointer-events-none absolute bottom-0 left-0 h-[2px] w-[100px] origin-left rounded-full bg-gold"
-          data-placed={placed.current || undefined}
+          data-placed={placed || undefined}
           data-loading={loading || undefined}
           style={{ transform: `translateX(${bar?.x ?? 0}px) scaleX(${(bar?.w ?? 0) / 100})`, opacity: bar ? 1 : 0 }}
         />

@@ -4,6 +4,8 @@ import { updateSettings } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import type { Settings } from "@/lib/types";
 import { SubmitButton } from "@/components/Pending";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 /** A, A1, A2, A11… the way the rules shape a story, for the preview. */
 function previewLevels(branches: number | null, depth: number | null) {
@@ -19,7 +21,8 @@ function previewLevels(branches: number | null, depth: number | null) {
 }
 
 export function SettingsForm({ settings }: { settings: Settings }) {
-  const [state, action] = useActionState<FormState, FormData>(updateSettings, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(updateSettings), {});
+  const keep = useKeepOnError(state);
   const [branches, setBranches] = useState(settings.max_branches_per_line?.toString() ?? "");
   const [depth, setDepth] = useState(settings.max_depth?.toString() ?? "");
   const fe = state.fieldErrors ?? {};
@@ -60,7 +63,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
   );
 
   return (
-    <form action={action} className="grid gap-8 desk:grid-cols-[1fr_320px]">
+    <form action={action} {...keep} className="grid gap-8 desk:grid-cols-[1fr_320px]">
       <div className="space-y-6">
         <fieldset className="card space-y-5 p-5">
           <legend className="eyebrow px-1">Story shape</legend>
@@ -126,11 +129,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
               {state.ok}
             </p>
           )}
-          {state.error && (
-            <p role="alert" className="text-sm text-red-800">
-              {state.error}
-            </p>
-          )}
+          <FormError className="text-sm text-red-800">{state.error}</FormError>
         </div>
       </div>
 

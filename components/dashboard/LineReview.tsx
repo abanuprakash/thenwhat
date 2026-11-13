@@ -2,11 +2,31 @@
 import { useActionState } from "react";
 import { reviewLine } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
-import { SubmitButton } from "@/components/Pending";
+import { ConfirmButton, type Outcome } from "@/components/Confirm";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
-/** Approve or reject a pending line (or a pending edit), with an optional note to the writer. */
-export function LineReview({ lineId, idPrefix = "r" }: { lineId: string; idPrefix?: string }) {
-  const [state, action] = useActionState<FormState, FormData>(reviewLine, {});
+/**
+ * Approve or reject a pending line (or a pending edit), with an optional note to the writer.
+ * Each decision opens a confirmation that says exactly what will happen.
+ */
+export function LineReview({
+  lineId,
+  writer,
+  text,
+  isEdit = false,
+  idPrefix = "r",
+}: {
+  lineId: string;
+  /** The writer's handle, for the confirmation. */
+  writer?: string | null;
+  /** The line (or the proposed new wording) being decided on. */
+  text: string;
+  isEdit?: boolean;
+  idPrefix?: string;
+}) {
+  const [state, action] = useActionState<FormState, FormData>(guard(reviewLine), {});
+  const keep = useKeepOnError(state);
   const noteId = `${idPrefix}-note-${lineId}`;
   if (state.ok) {
     return (
@@ -15,26 +35,76 @@ export function LineReview({ lineId, idPrefix = "r" }: { lineId: string; idPrefi
       </p>
     );
   }
+
+  const who = writer ? `@${writer}` : "the writer";
+  const Who = writer ? `@${writer}` : "The writer";
+  const noteLine = (fd: FormData): Outcome[] =>
+    String(fd.get("note") ?? "").trim() ? [{ tone: "info", text: <>{Who} sees your note with the decision.</> }] : [];
+
+  const approve = (fd: FormData): Outcome[] =>
+    isEdit
+      ? [
+          { tone: "plus", text: "The new wording replaces the old one, for everyone." },
+          { tone: "info", text: "Votes and the branches below it stay as they are." },
+          ...noteLine(fd),
+        ]
+      : [
+          { tone: "plus", text: <>The line goes live in the story, credited to {who}.</> },
+          { tone: "plus", text: "Readers can vote on it, and writers can continue or branch from it." },
+          ...noteLine(fd),
+        ];
+
+  const reject = (fd: FormData): Outcome[] =>
+    isEdit
+      ? [
+          { tone: "minus", text: "The proposed wording is dropped. The line keeps its current text." },
+          { tone: "info", text: <>{Who} can suggest a different edit.</> },
+          ...noteLine(fd),
+        ]
+      : [
+          { tone: "minus", text: "The line isn't published. Readers never see it." },
+          { tone: "plus", text: "Its branch slot opens up again, so someone else can write here." },
+          { tone: "info", text: <>{Who} can edit it and send it again.</> },
+          ...noteLine(fd),
+        ];
+
   return (
-    <form action={action} className="space-y-2">
+    <form action={action} {...keep} className="space-y-2">
       <input type="hidden" name="lineId" value={lineId} />
       <label htmlFor={noteId} className="eyebrow block">
         Note to the writer (optional)
       </label>
       <input id={noteId} name="note" maxLength={280} className="field !py-2 !text-sm" />
       <div className="flex flex-wrap gap-2">
-        <SubmitButton name="approve" value="yes" className="btn-primary">
-          Approve
-        </SubmitButton>
-        <SubmitButton name="approve" value="no" className="btn-secondary">
-          Don&apos;t publish
-        </SubmitButton>
+        <ConfirmButton
+          error={state.error}
+          label="Approve"
+          eyebrow={isEdit ? "Edit waiting for approval" : "New line waiting for approval"}
+          title={isEdit ? "Publish this edit?" : "Publish this line?"}
+          preview={<>“{text}”</>}
+          outcomes={approve}
+          confirmLabel={isEdit ? "Publish edit" : "Publish line"}
+          pendingLabel="Publishing"
+          name="approve"
+          value="yes"
+        />
+        <ConfirmButton
+          error={state.error}
+          label="Don't publish"
+          className="btn-secondary"
+          eyebrow={isEdit ? "Edit waiting for approval" : "New line waiting for approval"}
+          title={isEdit ? "Keep the original wording?" : "Don't publish this line?"}
+          preview={<>“{text}”</>}
+          outcomes={reject}
+          confirmLabel={isEdit ? "Reject edit" : "Don't publish"}
+          confirmClassName="btn-primary"
+          pendingLabel="Saving"
+          name="approve"
+          value="no"
+          caution
+        />
       </div>
-      {state.error && (
-        <p role="alert" className="text-xs text-red-800">
-          {state.error}
-        </p>
-      )}
+      <FormError className="text-xs text-red-800">{state.error}</FormError>
     </form>
   );
 }

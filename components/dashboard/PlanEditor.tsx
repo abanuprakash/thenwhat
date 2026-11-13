@@ -5,14 +5,17 @@ import type { FormState } from "@/lib/action-utils";
 import { FEATURE_INFO } from "@/lib/features";
 import type { Plan } from "@/lib/types";
 import { SubmitButton } from "@/components/Pending";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function PlanEditor({ plan, members }: { plan: Plan; members: number }) {
-  const [state, action] = useActionState<FormState, FormData>(adminSavePlan, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(adminSavePlan), {});
+  const keep = useKeepOnError(state);
   const id = (s: string) => `${plan.id}-${s}`;
   const fe = state.fieldErrors ?? {};
 
   return (
-    <form action={action} className="card p-5" aria-labelledby={id("title")}>
+    <form action={action} {...keep} className="card p-5" aria-labelledby={id("title")}>
       <input type="hidden" name="planId" value={plan.id} />
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 id={id("title")} className="font-serif text-lg font-semibold">
@@ -87,7 +90,7 @@ export function PlanEditor({ plan, members }: { plan: Plan; members: number }) {
           {`Save ${plan.name}`}
         </SubmitButton>
         {state.ok && <span role="status" className="text-xs text-faint">{state.ok}</span>}
-        {state.error && <span role="alert" className="text-xs text-red-800">{state.error}</span>}
+        <FormError className="text-xs text-red-800">{state.error}</FormError>
       </div>
     </form>
   );

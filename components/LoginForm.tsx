@@ -5,6 +5,8 @@ import type { FormState } from "@/lib/action-utils";
 import { BotFields } from "@/components/BotFields";
 import { Turnstile } from "@/components/Turnstile";
 import { NativeForm, SubmitButton } from "@/components/Pending";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function LoginForm({
   next,
@@ -17,7 +19,8 @@ export function LoginForm({
   nonce: string;
   emailEnabled?: boolean;
 }) {
-  const [state, action] = useActionState<FormState, FormData>(sendMagicLink, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(sendMagicLink), {});
+  const keep = useKeepOnError(state);
 
   if (state.ok) {
     return (
@@ -48,7 +51,7 @@ export function LoginForm({
         </div>
       )}
       {emailEnabled && (
-      <form action={action} className="space-y-3">
+      <form action={action} {...keep} className="space-y-3">
         <BotFields />
         <input type="hidden" name="next" value={next} />
         <label htmlFor="email" className="eyebrow block">
@@ -77,11 +80,7 @@ export function LoginForm({
         </SubmitButton>
       </form>
       )}
-      {state.error && (
-        <p role="alert" className="text-sm text-red-800">
-          {state.error}
-        </p>
-      )}
+      <FormError className="text-sm text-red-800">{state.error}</FormError>
     </div>
   );
 }

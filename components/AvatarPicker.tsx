@@ -2,7 +2,9 @@
 import { useRef, useState, useTransition } from "react";
 import { applyGooglePhoto, removeAvatar, uploadAvatar } from "@/app/account-actions";
 import { Avatar } from "@/components/Avatar";
+import { safely } from "@/lib/client-action";
 import { BusyButton, Dots } from "@/components/Pending";
+import { FormError } from "@/components/FormError";
 
 /** Upload a photo, switch to the Google photo, or go back to initials. */
 export function AvatarPicker({ url, handle, hasGooglePhoto }: { url: string | null; handle: string; hasGooglePhoto: boolean }) {
@@ -17,7 +19,7 @@ export function AvatarPicker({ url, handle, hasGooglePhoto }: { url: string | nu
     start(async () => {
       setError(undefined);
       setStatus(undefined);
-      const res = await fn();
+      const res = await safely(fn);
       if (res.error) setError(res.error);
       else setStatus(done);
     });
@@ -51,6 +53,14 @@ export function AvatarPicker({ url, handle, hasGooglePhoto }: { url: string | nu
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
+                // Check in the browser first, so a wrong file never travels (the server checks again).
+                const problem = photoProblem(file);
+                if (problem) {
+                  setStatus(undefined);
+                  setError(problem);
+                  e.target.value = "";
+                  return;
+                }
                 const fd = new FormData();
                 fd.set("avatar", file);
                 run("upload", () => uploadAvatar(fd), "Photo updated.");
@@ -81,11 +91,18 @@ export function AvatarPicker({ url, handle, hasGooglePhoto }: { url: string | nu
           {status}
         </p>
       )}
-      {error && (
-        <p role="alert" className="text-xs text-red-800">
-          {error}
-        </p>
-      )}
+      <FormError className="text-xs text-red-800">{error}</FormError>
     </fieldset>
   );
+}
+
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const PHOTO_MAX = 4 * 1024 * 1024;
+
+function photoProblem(file: File): string | null {
+  if (!PHOTO_TYPES.includes(file.type)) return "That file isn't a photo we can use. Try a JPG, PNG, WebP or GIF.";
+  if (file.size > PHOTO_MAX)
+    return `That photo is ${(file.size / 1024 / 1024).toFixed(1)} MB, and the limit is 4 MB. Try a smaller one (a screenshot of it works too).`;
+  if (file.size === 0) return "That file is empty. Try choosing the photo again.";
+  return null;
 }

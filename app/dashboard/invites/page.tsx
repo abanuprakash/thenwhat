@@ -14,8 +14,7 @@ export default async function InvitesPage() {
     return <Locked feature="Sending invites" />;
   }
   const slots = ent?.features.invite?.quota ?? null;
-  const now = Date.now();
-  const used = invites.filter((i) => i.used_by || new Date(i.expires_at).getTime() > now).length;
+  const used = countUsedSlots(invites);
 
   return (
     <div className="max-w-[620px]">
@@ -28,10 +27,20 @@ export default async function InvitesPage() {
         invites={invites.map((i) => ({
           token: i.token,
           invitee: i.invitee?.handle ?? null,
-          status: i.used_by ? "Joined" : new Date(i.expires_at).getTime() > now ? "Pending" : "Expired",
+          status: i.used_by ? "Joined" : isLive(i.expires_at) ? "Pending" : "Expired",
           expiresAt: i.expires_at,
         }))}
       />
     </div>
   );
+}
+
+/** Whether an invite link still works. */
+function isLive(expiresAt: string) {
+  return new Date(expiresAt).getTime() > Date.now();
+}
+
+/** Invites that take a slot: accepted ones, and ones that haven't expired yet. */
+function countUsedSlots(invites: { used_by: string | null; expires_at: string }[]) {
+  return invites.filter((i) => i.used_by || isLive(i.expires_at)).length;
 }

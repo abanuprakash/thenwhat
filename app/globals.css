@@ -130,6 +130,121 @@ button:disabled:not([data-busy]) { cursor: not-allowed; }
 .lm-draw { animation: sb-icon-draw 620ms var(--ease-out) var(--d, 120ms) backwards; }
 .lm-pop { transform-box: fill-box; transform-origin: center; animation: sb-icon-pop 360ms var(--ease-out) var(--d, 0ms) backwards; }
 
+/* ── Confirmations: a dialog on wide screens, a bottom sheet on phones ──────── */
+.confirm { padding: 0; border: 0; background: transparent; max-width: none; max-height: none; overflow: visible; color: inherit; }
+.confirm::backdrop { background: rgba(28, 26, 23, 0.42); animation: sb-fade var(--dur-base) var(--ease-out); }
+.confirm[data-closing]::backdrop { animation: sb-fade-out 200ms var(--ease-soft) forwards; }
+html:has(dialog.confirm[open]) { overflow: hidden; }
+.confirm-panel {
+  background: #FFFFFF; border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 24px 60px -24px rgba(60, 40, 10, 0.45);
+  padding: 22px 24px 22px;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.confirm-handle { display: none; }
+.confirm-item { animation: sb-count var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 50ms + 120ms); }
+@keyframes sb-fade-out { to { opacity: 0; } }
+@keyframes sb-dialog-in { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes sb-dialog-out { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
+@keyframes sb-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sb-sheet-out { to { transform: translateY(100%); } }
+@media (min-width: 761px) {
+  .confirm { margin: auto; width: min(460px, calc(100vw - 32px)); }
+  .confirm-panel { border-radius: 6px; animation: sb-dialog-in 260ms var(--ease-out); }
+  .confirm[data-closing] .confirm-panel { animation: sb-dialog-out 180ms var(--ease-soft) forwards; }
+}
+@media (max-width: 760px) {
+  .confirm { margin: auto 0 0; width: 100%; }
+  .confirm-panel {
+    border-radius: 16px 16px 0 0; border-bottom: 0; max-height: 88dvh; overflow-y: auto;
+    padding: 6px 20px max(18px, env(safe-area-inset-bottom));
+    animation: sb-sheet-in 360ms var(--ease-out);
+  }
+  .confirm[data-closing] .confirm-panel { animation: sb-sheet-out 240ms var(--ease-soft) forwards; }
+  /* The grab handle: drag down to dismiss. */
+  .confirm-handle { display: flex; justify-content: center; padding: 6px 0 12px; touch-action: none; cursor: grab; }
+  .confirm-handle span { width: 36px; height: 4px; border-radius: 9999px; background: #D9CBA0; }
+}
+
+/* ── Votes and follows: small, quick, and they match what you did ─────────── */
+/* Upvote nudges up, downvote nudges down, undo settles; a soft ring spreads behind the arrow once. */
+.vote-nudge-up { animation: sb-nudge-up 360ms var(--ease-out); }
+.vote-nudge-down { animation: sb-nudge-down 360ms var(--ease-out); }
+.vote-settle { animation: sb-settle 260ms var(--ease-soft); }
+@keyframes sb-nudge-up { 0% { transform: translateY(0) scale(1); } 35% { transform: translateY(-4px) scale(1.18); } 100% { transform: none; } }
+@keyframes sb-nudge-down { 0% { transform: translateY(0) scale(1); } 35% { transform: translateY(4px) scale(1.18); } 100% { transform: none; } }
+@keyframes sb-settle { 0% { transform: scale(0.82); } 100% { transform: none; } }
+.vote-ring {
+  position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border-radius: 9999px; border: 1.5px solid #D9A441; pointer-events: none;
+  animation: sb-ring 520ms var(--ease-out) both;
+}
+.vote-ring-down { border-color: #D9CBA0; }
+/* The count rolls: a higher number comes up from below, a lower one drops in from above. */
+.count-up { display: inline-block; animation: sb-roll-up 300ms var(--ease-out); }
+.count-down { display: inline-block; animation: sb-roll-down 300ms var(--ease-out); }
+@keyframes sb-roll-up { from { opacity: 0; transform: translateY(70%); } to { opacity: 1; transform: none; } }
+@keyframes sb-roll-down { from { opacity: 0; transform: translateY(-70%); } to { opacity: 1; transform: none; } }
+/* The follow star turns one point and pops; six sparks fly out once. Unfollow settles. */
+.star-on { animation: sb-star-on 460ms var(--ease-out); }
+.star-off { animation: sb-settle 260ms var(--ease-soft); }
+@keyframes sb-star-on { 0% { transform: scale(0.6) rotate(-72deg); } 60% { transform: scale(1.2) rotate(6deg); } 100% { transform: none; } }
+.star-sparks { position: absolute; inset: 0; pointer-events: none; }
+.star-sparks span {
+  position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px;
+  border-radius: 9999px; background: #D9A441; opacity: 0;
+  animation: sb-spark 520ms var(--ease-out) 60ms both;
+}
+@keyframes sb-spark {
+  0% { opacity: 1; transform: rotate(var(--a)) translateY(-4px) scale(1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(-14px) scale(0.4); }
+}
+
+/* ── Failure states: toasts, the offline note, and their drawings ────────────── */
+/* Toast: one note at a time, rising from the bottom (above the phone nav). */
+.toast-wrap { position: fixed; left: 0; right: 0; bottom: 20px; z-index: 60; display: flex; justify-content: center; padding: 0 16px; pointer-events: none; }
+@media (max-width: 760px) { .toast-wrap { bottom: calc(92px + env(safe-area-inset-bottom)); } }
+.toast {
+  pointer-events: auto; display: flex; align-items: flex-start; gap: 12px; width: min(420px, 100%);
+  background: #FFFFFF; border: 1px solid rgba(0, 0, 0, 0.08); border-left: 3px solid #D9A441; border-radius: 6px;
+  padding: 12px 12px 12px 14px; box-shadow: 0 18px 40px -20px rgba(60, 40, 10, 0.45);
+  animation: sb-toast-in 360ms var(--ease-out) both;
+}
+.toast[data-leaving] { animation: sb-toast-out 220ms var(--ease-soft) forwards; }
+.toast-art { flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: #F1ECE1; }
+.toast-close { flex: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: -4px -4px 0 0; border-radius: 9999px; color: #736A5D; }
+.toast-close:hover { background: #F1ECE1; color: #1C1A17; }
+@keyframes sb-toast-in { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes sb-toast-out { to { opacity: 0; transform: translateY(8px); } }
+/* Under the header: you're offline / back online. */
+.conn-wrap { position: sticky; top: 58px; z-index: 25; display: flex; justify-content: center; padding: 8px 16px 0; pointer-events: none; }
+.conn {
+  pointer-events: auto; display: flex; align-items: center; gap: 10px; width: min(460px, 100%);
+  background: #F1E4C4; border: 1px solid #D9C48A; border-radius: 9999px; padding: 6px 16px 6px 8px;
+  animation: sb-conn-in 360ms var(--ease-out) both;
+}
+.conn[data-back] { background: #FFFFFF; border-color: rgba(0, 0, 0, 0.08); }
+@keyframes sb-conn-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+/* SnappedThread: the two halves pull apart a little and a few sparks fly, once. */
+.art-snap .snap-l, .art-snap .snap-r { transform-box: fill-box; }
+.art-snap .snap-l { animation: sb-snap-l 520ms var(--ease-out) 120ms both; transform-origin: left bottom; }
+.art-snap .snap-r { animation: sb-snap-r 520ms var(--ease-out) 120ms both; transform-origin: right top; }
+.art-snap .snap-spark { animation: sb-fade-out 700ms var(--ease-out) 260ms both; }
+@keyframes sb-snap-l { from { transform: translate(2px, -1px); } to { transform: rotate(-6deg); } }
+@keyframes sb-snap-r { from { transform: translate(-2px, 1px); } to { transform: rotate(5deg); } }
+/* RejoinedThread: the line draws across and the knot ties itself. */
+.art-rejoin .rejoin-line { animation: sb-icon-draw 520ms var(--ease-out) both; }
+.art-rejoin .rejoin-knot { transform-box: fill-box; transform-origin: center; animation: sb-icon-pop 360ms var(--ease-out) 420ms both; }
+/* TangledBranch: the knot scribbles itself in. */
+.art-tangle .tangle-knot { animation: sb-icon-draw 900ms var(--ease-out) 150ms both; }
+
+/* A failed request in a form: the card rises in. */
+.form-failure { animation: sb-count var(--dur-base) var(--ease-out); }
+
+/* The error inside a confirmation shakes once, gently, so it's noticed. */
+.confirm-error { animation: sb-nudge-x 420ms var(--ease-out); }
+@keyframes sb-nudge-x { 0%, 100% { transform: none; } 20% { transform: translateX(-4px); } 45% { transform: translateX(3px); } 70% { transform: translateX(-2px); } }
+
 /* ── Home feed tabs ─────────────────────────────────────────────────────── */
 .feed-tabs { scrollbar-width: none; }
 .feed-tabs::-webkit-scrollbar { display: none; }

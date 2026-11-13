@@ -35,7 +35,7 @@ This is the MVP from the *MVP: Lean Architecture* plan: one Next.js app and one 
 
 | | |
 |---|---|
-| App | Next.js 15 (App Router), React 19, TypeScript |
+| App | Next.js 16 (App Router, Turbopack), React 19, TypeScript |
 | Styling | Tailwind CSS, using the prototype's palette with Source Serif 4 and Inter |
 | Data | Server Components and Server Actions, with `useOptimistic` for votes and follows |
 | Tree map | `@xyflow/react` (React Flow) |
@@ -145,7 +145,7 @@ npm run test:e2e   # Playwright smoke tests (BASE_URL=… to point at a deployme
   - Search text is cleaned to a safe character set.
   - React escapes all output.
 - **Errors:** technical database errors are logged on the server and replaced with a generic message.
-- **Dependencies:** Next.js 15.5.29, React 19.1.10, Zod 4.6.7 and sharp 0.35.5, all patched for the published advisories, including React Server Components RCE and middleware bypass. Next's image optimiser is switched off.
+- **Dependencies:** Next.js 16.4.6, React 19.3.1, Zod 4.6.7 and sharp 0.35.5, all patched for the published advisories, including React Server Components RCE and middleware bypass. Next's image optimiser is switched off.
 - **Roles are checked four times:**
   - In middleware, on every request to an author or admin page, prefetches included.
   - Again on admin-only pages themselves.

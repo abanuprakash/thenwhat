@@ -60,7 +60,7 @@ export function RequestCard({ request: r, viewerId, isAdmin }: { request: LimitR
         </p>
       )}
 
-      {canDecide && <RequestDecision requestId={r.id} kind={r.kind} />}
+      {canDecide && <RequestDecision requestId={r.id} kind={r.kind} requester={r.requester?.handle} storyTitle={r.story?.title} />}
       {r.status === "pending" && isMine && <CancelRequestButton requestId={r.id} />}
       {r.status === "pending" && !canDecide && !isMine && (
         <p className="text-xs text-faint">Waiting for the story&apos;s starter or an admin.</p>

@@ -4,30 +4,38 @@ import { checkHandle, completeOnboarding } from "@/app/account-actions";
 import type { FormState } from "@/lib/action-utils";
 import { BotFields } from "@/components/BotFields";
 import { SubmitButton } from "@/components/Pending";
+import { guard, useKeepOnError } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function WelcomeForm({ handle, displayName, next }: { handle: string; displayName: string; next: string }) {
-  const [state, action] = useActionState<FormState, FormData>(completeOnboarding, {});
+  const [state, action] = useActionState<FormState, FormData>(guard(completeOnboarding), {});
+  const keep = useKeepOnError(state);
   const [value, setValue] = useState(handle);
-  const [check, setCheck] = useState<{ available: boolean; message: string } | null>(null);
+  // Answers from the server, remembered with the handle they were for.
+  const [answer, setAnswer] = useState<{ for: string; result: { available: boolean; message: string } | null } | null>(null);
+  const h = value.trim().toLowerCase();
+  // Some answers need no server: your own handle, or one that's too short to check yet.
+  const local = h === handle ? { available: true, message: `@${h} is yours.` } : h.length < 3 ? null : undefined;
+  const needsServer = local === undefined;
+  const check = !needsServer ? local : answer?.for === h ? answer.result : null;
 
-  // Check availability shortly after typing stops.
+  // Ask the server shortly after typing stops.
   useEffect(() => {
-    const h = value.trim().toLowerCase();
-    if (h === handle) {
-      setCheck({ available: true, message: `@${h} is yours.` });
-      return;
-    }
-    if (h.length < 3) {
-      setCheck(null);
-      return;
-    }
-    const t = setTimeout(async () => setCheck(await checkHandle(h)), 450);
+    if (!needsServer) return;
+    // If the check can't reach us, say nothing: the server checks again when the form is sent.
+    const t = setTimeout(async () => {
+      try {
+        setAnswer({ for: h, result: await checkHandle(h) });
+      } catch {
+        setAnswer({ for: h, result: null });
+      }
+    }, 450);
     return () => clearTimeout(t);
-  }, [value, handle]);
+  }, [h, needsServer]);
 
   const fe = state.fieldErrors ?? {};
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} {...keep} className="space-y-5">
       <BotFields />
       <input type="hidden" name="next" value={next} />
       <div>
@@ -70,11 +78,7 @@ export function WelcomeForm({ handle, displayName, next }: { handle: string; dis
       <SubmitButton className="btn-primary" disabled={(check !== null && !check.available)} pendingLabel="Saving">
         Start reading
       </SubmitButton>
-      {state.error && (
-        <p role="alert" className="text-sm text-red-800">
-          {state.error}
-        </p>
-      )}
+      <FormError className="text-sm text-red-800">{state.error}</FormError>
     </form>
   );
 }

@@ -2,6 +2,8 @@
 import { useState, useTransition } from "react";
 import { markComplete, reportLine } from "@/app/actions";
 import { BusyButton } from "@/components/Pending";
+import { safely } from "@/lib/client-action";
+import { FormError } from "@/components/FormError";
 
 export function MarkCompleteButton({ lineId, slug }: { lineId: string; slug: string }) {
   const [pending, start] = useTransition();
@@ -14,14 +16,14 @@ export function MarkCompleteButton({ lineId, slug }: { lineId: string; slug: str
         pendingLabel="Marking"
         onClick={() =>
           start(async () => {
-            const res = await markComplete(lineId, slug);
+            const res = await safely(() => markComplete(lineId, slug));
             if (res.error) setError(res.error);
           })
         }
       >
         Mark this ending as complete
       </BusyButton>
-      {error && <p role="alert" className="mt-2 text-xs text-red-800">{error}</p>}
+      <FormError className="mt-2 text-xs text-red-800">{error}</FormError>
     </div>
   );
 }
@@ -30,6 +32,7 @@ export function ReportButton({ lineId, signedIn }: { lineId: string; signedIn: b
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [done, setDone] = useState<string>();
+  const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
 
   if (!signedIn) return null;
@@ -47,8 +50,10 @@ export function ReportButton({ lineId, signedIn }: { lineId: string; signedIn: b
       onSubmit={(e) => {
         e.preventDefault();
         if (pending) return;
+        setError(undefined);
         start(async () => {
-          const res = await reportLine(lineId, reason);
+          const res = await safely(() => reportLine(lineId, reason));
+          if ("failure" in res) return setError(res.error); // keep the form open so they can resend
           setDone(res.error ?? "Thanks. An admin will take a look.");
         });
       }}
@@ -70,6 +75,7 @@ export function ReportButton({ lineId, signedIn }: { lineId: string; signedIn: b
       <button type="button" className="text-xs text-faint hover:text-ink" disabled={pending} onClick={() => setOpen(false)}>
         Cancel
       </button>
+      <FormError className="w-full text-xs text-red-800">{error}</FormError>
     </form>
   );
 }

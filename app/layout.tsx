@@ -4,6 +4,8 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { SetupNotice } from "@/components/SetupNotice";
 import { VercelInsights } from "@/components/VercelInsights";
+import { ConnectionNotice } from "@/components/ConnectionNotice";
+import { Toaster } from "@/components/Toast";
 import { isConfigured } from "@/lib/env";
 import { BRAND } from "@/lib/brand";
 import { getViewer } from "@/lib/queries";
@@ -20,7 +22,9 @@ export const viewport: Viewport = { themeColor: "#F6F1E7", width: "device-width"
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = isConfigured ? await getViewer() : null;
   return (
-    <html lang="en">
+    // data-scroll-behavior: Next.js 16 no longer turns off our smooth scrolling during page changes
+    // unless asked; with it, a new page starts at the top instantly while in-page scrolling stays smooth.
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -38,8 +42,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to content
         </a>
         <Header viewer={viewer} />
+        <ConnectionNotice />
         <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">{isConfigured ? children : <SetupNotice />}</main>
         <BottomNav role={viewer?.profile.role ?? null} handle={viewer?.profile.handle ?? null} />
+        <Toaster />
         <VercelInsights />
       </body>
     </html>

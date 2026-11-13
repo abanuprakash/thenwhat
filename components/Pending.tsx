@@ -1,6 +1,7 @@
 "use client";
-import { createContext, useContext, useEffect, useState, type ButtonHTMLAttributes, type FormHTMLAttributes, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ButtonHTMLAttributes, type FormHTMLAttributes, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { toast } from "@/components/Toast";
 
 /**
  * Loading states for every button in Then What.
@@ -56,6 +57,12 @@ export function NativeForm({ children, onSubmit, ...props }: FormHTMLAttributes<
       aria-busy={sent || undefined}
       onSubmit={(e) => {
         if (sent) return e.preventDefault();
+        // Offline: don't send the browser to its error page; stay here and say so.
+        if (!navigator.onLine) {
+          e.preventDefault();
+          toast({ title: "That can't go anywhere yet", body: "You're offline. Try again once you're back; nothing was sent.", art: "offline" });
+          return;
+        }
         onSubmit?.(e);
         if (!e.defaultPrevented) setSent(true);
       }}
@@ -67,15 +74,55 @@ export function NativeForm({ children, onSubmit, ...props }: FormHTMLAttributes<
 
 type SubmitProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> & { pendingLabel?: ReactNode };
 
+/**
+ * The button only becomes disabled once React re-renders, and clicks can land before that (a fast
+ * double tap). So the form is also locked at the moment it's submitted: any further submit is
+ * dropped until this one finishes. Registered once per form, whichever SubmitButton mounts first.
+ */
+const locked = new WeakSet<HTMLFormElement>();
+const guardedForms = new WeakSet<HTMLFormElement>();
+function lockOnSubmit(form: HTMLFormElement) {
+  if (guardedForms.has(form)) return;
+  guardedForms.add(form);
+  form.addEventListener(
+    "submit",
+    (e) => {
+      // Offline: nothing will be sent, so don't lock (the form shows why it didn't go).
+      if (!navigator.onLine) return;
+      if (locked.has(form)) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+      locked.add(form);
+      // Safety net: never stay locked if the submit didn't turn into a request (e.g. offline guard).
+      setTimeout(() => locked.delete(form), 15000);
+    },
+    true,
+  );
+}
+
 export function SubmitButton({ children, pendingLabel, disabled, name, value, className = "btn-primary", ...props }: SubmitProps) {
   const status = useFormStatus();
   const nativeSent = useContext(NativePending);
   const sending = status.pending || nativeSent;
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (ref.current?.form) lockOnSubmit(ref.current.form);
+  }, []);
+  // When the request finishes, the form can be sent again.
+  const wasPending = useRef(false);
+  useEffect(() => {
+    const form = ref.current?.form;
+    if (form && wasPending.current && !status.pending) locked.delete(form);
+    wasPending.current = status.pending;
+  }, [status.pending]);
   // With several submit buttons, only the one that was pressed shows the loader.
   const mine = sending && (!name || !status.data || status.data.get(name) === String(value ?? ""));
   return (
     <button
       {...props}
+      ref={ref}
       type="submit"
       name={name}
       value={value}
