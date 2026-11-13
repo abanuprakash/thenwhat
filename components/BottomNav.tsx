@@ -44,10 +44,10 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
     : path.startsWith("/dashboard") ? "dashboard"
     : null;
 
-  // Tapped but not arrived yet: show it as chosen straight away.
-  const [pending, setPending] = useState<Key | null>(null);
-  useEffect(() => setPending(null), [path]);
-  const active = pending ?? routeActive;
+  // Tapped but not arrived yet: show it as chosen straight away. It's remembered with the page it
+  // was tapped on, so it simply stops applying once the new page arrives.
+  const [pending, setPending] = useState<{ key: Key; on: string } | null>(null);
+  const active = pending && pending.on === path ? pending.key : routeActive;
 
   // The tab that just stopped being active gets a short "let go" movement.
   const previous = useRef(active);
@@ -62,7 +62,7 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
   const navRef = useRef<HTMLElement>(null);
   const refs = useRef(new Map<Key, HTMLAnchorElement>());
   const [marker, setMarker] = useState<{ x: number; ready: boolean } | null>(null);
-  const placed = useRef(false);
+  const [placed, setPlaced] = useState(false);
 
   const measure = useCallback(() => {
     const nav = navRef.current;
@@ -82,11 +82,19 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
   }, [measure]);
   // The first placement doesn't slide in from the edge.
   useEffect(() => {
-    if (marker?.ready) requestAnimationFrame(() => (placed.current = true));
-  }, [marker?.ready]);
+    if (!marker?.ready || placed) return;
+    const id = requestAnimationFrame(() => setPlaced(true));
+    return () => cancelAnimationFrame(id);
+  }, [marker?.ready, placed]);
 
   // ── Tuck away on scroll down, return on scroll up ─────────────────────────
-  const [tucked, setTucked] = useState(false);
+  // Tucked away on a given page; a new page always starts with the bar showing.
+  const [tuckedOn, setTuckedOn] = useState<string | null>(null);
+  const pathRef = useRef(path);
+  useEffect(() => {
+    pathRef.current = path;
+  }, [path]);
+  const tucked = tuckedOn === path;
   useEffect(() => {
     // Measure distance travelled since the scroll last changed direction, so slow scrolls count too.
     let last = window.scrollY;
@@ -99,9 +107,9 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
         const y = window.scrollY;
         if ((y > last) !== (last > turn)) turn = last;
         const nearEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 48;
-        if (y < 64 || nearEnd) setTucked(false);
-        else if (y - turn > 24) setTucked(true);
-        else if (turn - y > 24) setTucked(false);
+        if (y < 64 || nearEnd) setTuckedOn(null);
+        else if (y - turn > 24) setTuckedOn(pathRef.current);
+        else if (turn - y > 24) setTuckedOn(null);
         last = y;
         ticking = false;
       });
@@ -109,7 +117,6 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-  useEffect(() => setTucked(false), [path]);
 
   // ── Step aside for the on-screen keyboard ─────────────────────────────────
   const [keyboard, setKeyboard] = useState(false);
@@ -133,7 +140,7 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
         if (el) refs.current.set(item.key, el);
         else refs.current.delete(item.key);
       },
-      onClick: () => item.key !== routeActive && setPending(item.key),
+      onClick: () => item.key !== routeActive && setPending({ key: item.key, on: path }),
     };
 
     if (item.key === "write") {
@@ -182,7 +189,7 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
       <span
         aria-hidden="true"
         className="nav-marker pointer-events-none absolute left-0 top-[7px] h-[30px] w-[56px] rounded-full bg-cream"
-        data-placed={placed.current || undefined}
+        data-placed={placed || undefined}
         style={{
           transform: `translateX(${(marker?.x ?? 0) - 28}px) scale(${marker?.ready ? 1 : 0.6})`,
           opacity: marker?.ready ? 1 : 0,

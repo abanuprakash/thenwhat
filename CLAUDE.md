@@ -23,7 +23,7 @@ Before saying a change is done, run `npm run typecheck && npm run lint`. If you 
 
 ## Stack
 
-Next.js 15.5 (App Router, React 19.1, Server Components and Server Actions) · TypeScript · Tailwind 3 · Zod 4 · Supabase (Postgres with ltree, Auth, Storage) · React Flow (the tree map) · sharp (avatar processing) · Vercel hosting.
+Next.js 16.4 (App Router, Turbopack, React 19.3, Server Components and Server Actions) · TypeScript · Tailwind 3 · Zod 4 · Supabase (Postgres with ltree, Auth, Storage) · React Flow (the tree map) · sharp (avatar processing) · Vercel hosting.
 
 ## How it's put together (rules that matter)
 
@@ -33,7 +33,7 @@ Next.js 15.5 (App Router, React 19.1, Server Components and Server Actions) · T
 4. **Every Server Action follows the same order:** parse with Zod (schemas in `lib/schemas.ts`, text cleaned by `lib/sanitize.ts`) → `getViewer()` → plan feature (`hasFeature(await getEntitlements(), "…")`) → rate limit (`limit()` from `lib/security.ts`) → bot check on public forms (`looksLikeBot`) → database call → errors through `friendly()` → `revalidatePath`. See the `server-action` skill.
 5. **Plans gate features per person.** Feature keys live in three places that must match: SQL `feature_names()`, `FEATURES` in `lib/schemas.ts`, and `FEATURE_INFO` in `lib/features.ts`. See the `plan-feature` skill.
 6. **Profiles have column-level privileges.** Select from `profiles` with `PROFILE_COLUMNS` (from `lib/types.ts`), never `*`. Plan columns are private.
-7. **Gating happens at several layers:** `middleware.ts` (every request, prefetches included) plus a check inside each page (`requireAdmin()`, the dashboard layout) plus the database. When you add a protected route, add it to `AUTHOR_PATHS` or `ADMIN_PATHS` in `middleware.ts` *and* guard the page.
+7. **Gating happens at several layers:** `middleware.ts` (every request, prefetches included; Next 16 calls this file convention "proxy" and shows a deprecation warning, the rename is a planned follow-up) plus a check inside each page (`requireAdmin()`, the dashboard layout) plus the database. When you add a protected route, add it to `AUTHOR_PATHS` or `ADMIN_PATHS` in `middleware.ts` *and* guard the page.
 8. **CSP has a per-request nonce** (`middleware.ts`). Don't add inline `<script>`s. For a third-party script, use `next/script` with the nonce from `headers().get("x-nonce")`, and extend the CSP deliberately.
 
 ## Where things are

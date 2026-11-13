@@ -4,7 +4,7 @@ This guide takes you from an empty Supabase account to a live site on Vercel. Bu
 
 You'll need:
 
-- Node.js 20 or newer (`node -v` to check)
+- Node.js 20.9 or newer (`node -v` to check; Next.js 16 needs at least 20.9)
 - A GitHub account (the code is already there)
 - A [Supabase](https://supabase.com) account
 - A [Vercel](https://vercel.com) account (sign in with GitHub, it makes step 8 easier)

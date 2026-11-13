@@ -43,12 +43,13 @@ function useCurrent() {
 
 export function Toaster() {
   const item = useCurrent();
-  const [leaving, setLeaving] = useState(false);
+  // Which note is on its way out (by id), so a new note always arrives fresh.
+  const [leavingId, setLeavingId] = useState<number | null>(null);
+  const leaving = !!item && leavingId === item.id;
 
   useEffect(() => {
-    setLeaving(false);
     if (!item) return;
-    const t = setTimeout(() => setLeaving(true), 7000);
+    const t = setTimeout(() => setLeavingId(item.id), 7000);
     return () => clearTimeout(t);
   }, [item]);
 
@@ -82,7 +83,7 @@ export function Toaster() {
             </button>
           )}
         </div>
-        <button type="button" className="toast-close" aria-label="Dismiss" onClick={() => setLeaving(true)}>
+        <button type="button" className="toast-close" aria-label="Dismiss" onClick={() => setLeavingId(item.id)}>
           <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
             <path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>

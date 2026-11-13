@@ -22,7 +22,9 @@ export const viewport: Viewport = { themeColor: "#F6F1E7", width: "device-width"
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = isConfigured ? await getViewer() : null;
   return (
-    <html lang="en">
+    // data-scroll-behavior: Next.js 16 no longer turns off our smooth scrolling during page changes
+    // unless asked; with it, a new page starts at the top instantly while in-page scrolling stays smooth.
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

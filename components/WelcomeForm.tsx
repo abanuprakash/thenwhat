@@ -11,29 +11,27 @@ export function WelcomeForm({ handle, displayName, next }: { handle: string; dis
   const [state, action] = useActionState<FormState, FormData>(guard(completeOnboarding), {});
   const keep = useKeepOnError(state);
   const [value, setValue] = useState(handle);
-  const [check, setCheck] = useState<{ available: boolean; message: string } | null>(null);
+  // Answers from the server, remembered with the handle they were for.
+  const [answer, setAnswer] = useState<{ for: string; result: { available: boolean; message: string } | null } | null>(null);
+  const h = value.trim().toLowerCase();
+  // Some answers need no server: your own handle, or one that's too short to check yet.
+  const local = h === handle ? { available: true, message: `@${h} is yours.` } : h.length < 3 ? null : undefined;
+  const needsServer = local === undefined;
+  const check = !needsServer ? local : answer?.for === h ? answer.result : null;
 
-  // Check availability shortly after typing stops.
+  // Ask the server shortly after typing stops.
   useEffect(() => {
-    const h = value.trim().toLowerCase();
-    if (h === handle) {
-      setCheck({ available: true, message: `@${h} is yours.` });
-      return;
-    }
-    if (h.length < 3) {
-      setCheck(null);
-      return;
-    }
+    if (!needsServer) return;
     // If the check can't reach us, say nothing: the server checks again when the form is sent.
     const t = setTimeout(async () => {
       try {
-        setCheck(await checkHandle(h));
+        setAnswer({ for: h, result: await checkHandle(h) });
       } catch {
-        setCheck(null);
+        setAnswer({ for: h, result: null });
       }
     }, 450);
     return () => clearTimeout(t);
-  }, [value, handle]);
+  }, [h, needsServer]);
 
   const fe = state.fieldErrors ?? {};
   return (

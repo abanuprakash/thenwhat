@@ -67,7 +67,9 @@ export function ConfirmButton({
   // Show an error only if it came back from a decision made in this dialog.
   const [showError, setShowError] = useState(false);
   const errorRef = useRef(error);
-  errorRef.current = error;
+  useEffect(() => {
+    errorRef.current = error;
+  }, [error]);
 
   const open = () => {
     setShowError(false);

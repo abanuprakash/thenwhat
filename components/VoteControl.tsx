@@ -53,8 +53,8 @@ export function VoteControl({
   const cast = (value: VoteValue) => {
     if (!signedIn) return router.push(`/login?next=${encodeURIComponent(location.pathname)}`);
     if (!allowed) return setError("Voting isn't part of your plan. See Pricing.");
-    if (saving && Date.now() - sentAt.current < 8000) return;
-    sentAt.current = Date.now();
+    if (saving && msSince(sentAt.current) < 8000) return;
+    sentAt.current = nowMs();
     setError(undefined);
     const after = apply(state, value);
     setLast({ kind: after.mine === 1 ? "up" : after.mine === -1 ? "down" : "off", dir: Math.sign(after.up - after.down - (state.up - state.down)) });
@@ -117,3 +117,7 @@ export function VoteControl({
     </div>
   );
 }
+
+// Clock reads for the double-tap guard (only ever called from event handlers).
+const nowMs = () => Date.now();
+const msSince = (t: number) => Date.now() - t;

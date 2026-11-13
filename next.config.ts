@@ -29,12 +29,6 @@ const nextConfig: NextConfig = {
     // Avatar uploads go through a Server Action (4 MB images plus form overhead).
     serverActions: { bodySizeLimit: "5mb" },
   },
-  // supabase-js's realtime client has a dynamic require webpack can't follow. We never use
-  // realtime (pages poll our own API), so the warning is noise.
-  webpack(config) {
-    config.ignoreWarnings = [...(config.ignoreWarnings ?? []), { module: /@supabase\/realtime-js/ }];
-    return config;
-  },
   async rewrites() {
     // Profile photos are served from our own domain, so the browser never sees the storage address.
     return supabaseUrl

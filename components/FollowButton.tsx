@@ -29,8 +29,8 @@ export function FollowButton({
   const onClick = () => {
     if (!signedIn) return router.push(`/login?next=${encodeURIComponent(location.pathname)}`);
     if (!allowed) return router.push("/pricing");
-    if (saving && Date.now() - sentAt.current < 8000) return;
-    sentAt.current = Date.now();
+    if (saving && msSince(sentAt.current) < 8000) return;
+    sentAt.current = nowMs();
     setTick((t) => t + 1);
     start(async () => {
       const want = !following;
@@ -100,3 +100,7 @@ function Star({ following, tick }: { following: boolean; tick: number }) {
     </span>
   );
 }
+
+// Clock reads for the double-tap guard (only ever called from event handlers).
+const nowMs = () => Date.now();
+const msSince = (t: number) => Date.now() - t;
