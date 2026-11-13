@@ -23,13 +23,18 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
   const story = path.match(/^\/s\/([^/]+)(?:\/([0-9a-f-]{36}))?/);
   const treeHref = story ? `/s/${story[1]}/tree${story[2] ? `?at=${story[2]}` : ""}` : null;
 
-  const items: Item[] = [
+  // Write sits in the exact centre for everyone; each side spreads its own tabs.
+  // Guests and readers see it too: the middleware sends them to sign in or to "become an author".
+  const left: Item[] = [
     { key: "home", href: "/", label: "Home" },
     ...(treeHref ? [{ key: "tree" as const, href: treeHref, label: "Tree" }] : []),
-    ...(isAuthor ? [{ key: "write" as const, href: "/new", label: "Write" }] : []),
+  ];
+  const write: Item = { key: "write", href: "/new", label: "Write" };
+  const right: Item[] = [
     { key: "profile", href: handle ? `/u/${handle}` : "/login", label: handle ? "Profile" : "Sign in" },
     ...(isAuthor ? [{ key: "dashboard" as const, href: "/dashboard", label: "Dashboard" }] : []),
   ];
+  const items = [...left, write, ...right];
 
   const routeActive: Key | null =
     path === "/" ? "home"
@@ -119,6 +124,48 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
   const [focusInside, setFocusInside] = useState(false);
   const hidden = keyboard || (tucked && !focusInside);
 
+  const renderItem = (item: Item) => {
+    const on = active === item.key;
+    const common = {
+      href: item.href,
+      "aria-current": on ? ("page" as const) : undefined,
+      ref: (el: HTMLAnchorElement | null) => {
+        if (el) refs.current.set(item.key, el);
+        else refs.current.delete(item.key);
+      },
+      onClick: () => item.key !== routeActive && setPending(item.key),
+    };
+
+    if (item.key === "write") {
+      return (
+        <Link key={item.key} {...common} className="nav-item group relative z-[1] -mt-[18px] flex min-w-[64px] flex-col items-center gap-[5px] text-[11px] font-semibold text-ink hover:text-ink">
+          <span className="nav-fab flex h-[46px] w-[46px] items-center justify-center rounded-full bg-gold text-white" data-on={on || undefined}>
+            <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" className="nav-plus">
+              <path d="M10 3.5v13M3.5 10h13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </span>
+          {item.label}
+        </Link>
+      );
+    }
+
+    return (
+      <Link
+        key={item.key}
+        {...common}
+        className={`nav-item relative z-[1] flex min-h-[52px] min-w-[64px] flex-col items-center justify-center gap-[5px] px-2 text-[11px] font-semibold ${on ? "text-ink" : "text-faint"} hover:text-ink`}
+        data-on={on || undefined}
+        data-leaving={leaving === item.key || undefined}
+        onAnimationEnd={(e) => e.animationName === "sb-icon-letgo" && setLeaving(null)}
+      >
+        <span className="nav-icon flex h-[30px] items-center">
+          <Icon name={item.key} on={on} />
+        </span>
+        {item.label}
+      </Link>
+    );
+  };
+
   // First sign-in screen: nothing else is reachable until it's done.
   if (path === "/welcome") return null;
 
@@ -128,7 +175,7 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
       aria-label="Mobile"
       onFocus={() => setFocusInside(true)}
       onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setFocusInside(false)}
-      className="nav-bar fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-black/[.07] bg-paper/90 px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-[6px] backdrop-blur-md desk:hidden"
+      className="nav-bar fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-black/[.07] bg-paper/90 px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-[6px] backdrop-blur-md desk:hidden"
       data-hidden={hidden || undefined}
     >
       {/* The marker behind the active icon */}
@@ -141,47 +188,9 @@ export function BottomNav({ role, handle }: { role: Role | null; handle: string 
           opacity: marker?.ready ? 1 : 0,
         }}
       />
-      {items.map((item) => {
-        const on = active === item.key;
-        const common = {
-          href: item.href,
-          "aria-current": on ? ("page" as const) : undefined,
-          ref: (el: HTMLAnchorElement | null) => {
-            if (el) refs.current.set(item.key, el);
-            else refs.current.delete(item.key);
-          },
-          onClick: () => item.key !== routeActive && setPending(item.key),
-        };
-
-        if (item.key === "write") {
-          return (
-            <Link key={item.key} {...common} className="nav-item group relative z-[1] -mt-[18px] flex min-w-[64px] flex-col items-center gap-[5px] text-[11px] font-semibold text-ink hover:text-ink">
-              <span className="nav-fab flex h-[46px] w-[46px] items-center justify-center rounded-full bg-gold text-white" data-on={on || undefined}>
-                <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" className="nav-plus">
-                  <path d="M10 3.5v13M3.5 10h13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </span>
-              {item.label}
-            </Link>
-          );
-        }
-
-        return (
-          <Link
-            key={item.key}
-            {...common}
-            className={`nav-item relative z-[1] flex min-h-[52px] min-w-[64px] flex-col items-center justify-center gap-[5px] px-2 text-[11px] font-semibold ${on ? "text-ink" : "text-faint"} hover:text-ink`}
-            data-on={on || undefined}
-            data-leaving={leaving === item.key || undefined}
-            onAnimationEnd={(e) => e.animationName === "sb-icon-letgo" && setLeaving(null)}
-          >
-            <span className="nav-icon flex h-[30px] items-center">
-              <Icon name={item.key} on={on} />
-            </span>
-            {item.label}
-          </Link>
-        );
-      })}
+      <div className="flex flex-1 items-stretch justify-around">{left.map(renderItem)}</div>
+      <div className="flex w-[76px] shrink-0 justify-center">{renderItem(write)}</div>
+      <div className="flex flex-1 items-stretch justify-around">{right.map(renderItem)}</div>
     </nav>
   );
 }

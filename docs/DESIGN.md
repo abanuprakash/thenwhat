@@ -155,7 +155,7 @@ Rules:
 
 - **Breakpoint:** 760px. `mobile:` (≤760) and `desk:` (≥761) in Tailwind.
 - **Phones:**
-  - The bottom nav replaces the header links. Every tab is at least 52px tall and carries `aria-current="page"` when it's the page you're on; Profile only lights up on your own profile.
+  - The bottom nav replaces the header links. Write is always in the exact centre and shown to everyone (guests go to sign in, readers to "become an author"); Home and Tree sit on the left, Profile and Dashboard on the right. Every tab is at least 52px tall and carries `aria-current="page"` when it's the page you're on; Profile only lights up on your own profile.
   - Tables become stacked cards. Render a separate list rather than restyling the table, and use an `idPrefix` so ids stay unique.
   - Sidebars drop below the main content.
   - Leave `pb-24` at the end of pages so the bottom nav doesn't cover anything.
