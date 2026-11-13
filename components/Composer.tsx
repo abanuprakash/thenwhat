@@ -30,17 +30,22 @@ export function Composer({ parentId }: { parentId: string }) {
         onChange={(e) => setText(e.target.value)}
         placeholder="And then…"
         aria-describedby="text-count"
+        data-tour="composer"
         autoFocus
         className="field min-h-[120px] resize-y !p-4 font-serif !text-base leading-normal"
       />
       <div className="mt-[10px] flex items-center justify-between">
-        <CharCounter length={len} id="text-count" />
-        <SubmitButton className="btn-primary" disabled={len === 0 || len > LINE_MAX} pendingLabel="Adding">
+        <span data-tour="char-counter">
+          <CharCounter length={len} id="text-count" />
+        </span>
+        <SubmitButton className="btn-primary" disabled={len === 0 || len > LINE_MAX} pendingLabel="Adding" data-tour="write-submit">
           Add my line
         </SubmitButton>
       </div>
       <p className="mt-2 text-[11px] text-faint">One line, up to {LINE_MAX} characters. Leave readers wanting the next one.</p>
-      <Spark />
+      <div data-tour="sparks">
+        <Spark />
+      </div>
       <FormError className="mt-3 text-sm text-red-800">{error}</FormError>
     </form>
   );

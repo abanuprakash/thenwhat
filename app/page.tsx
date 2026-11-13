@@ -4,6 +4,7 @@ import { FEED_TABS, getEntitlements, getFeed, getFollowedIds, getViewer, hasFeat
 import { FollowButton } from "@/components/FollowButton";
 import { FeedTabs } from "@/components/FeedTabs";
 import { formatNum, plural } from "@/lib/format";
+import { PageTour } from "@/components/Tour";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="mx-auto w-full max-w-[760px] px-4 pb-24 pt-9 desk:px-6">
+      <PageTour id="home" />
       {viewer && <h1 className="sr-only">Stories</h1>}
       {!viewer && (
         <section className="animate-page mb-8">
@@ -32,6 +34,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {stories.map((s, i) => (
             <li
               key={s.id}
+              data-tour={i === 0 ? "story-card" : undefined}
               style={{ "--i": i } as React.CSSProperties}
               className="animate-stagger group relative flex items-start gap-[14px] rounded-[3px] border-b border-black/[.06] px-1 py-4 transition-colors duration-200 hover:bg-white/60"
             >
@@ -58,7 +61,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   <span>by @{s.author_handle}</span>
                 </div>
               </div>
-              <div className="relative z-10">
+              <div className="relative z-10" data-tour={i === 0 ? "follow-star" : undefined}>
                 <FollowButton storyId={s.id} initial={followed.has(s.id)} signedIn={!!viewer} allowed={hasFeature(ent, "follow")} />
               </div>
             </li>

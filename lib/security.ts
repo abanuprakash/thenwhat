@@ -43,6 +43,7 @@ export const LIMITS = {
   acceptInvitePerIp: [20, 3600],
   reviewPerUser: [300, 3600],
   adminPerUser: [300, 3600],
+  tourPerUser: [60, 3600],
   // Open stories check up to once a second (Settings → Live updates): room for ~10 visible tabs per IP.
   pollPerIp: [600, 60],
 } as const satisfies Record<string, readonly [number, number]>;

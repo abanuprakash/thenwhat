@@ -6,6 +6,7 @@ import { BotFields } from "@/components/BotFields";
 import { SubmitButton } from "@/components/Pending";
 import { guard, useKeepOnError } from "@/lib/client-action";
 import { FormError } from "@/components/FormError";
+import { InfoTip } from "@/components/InfoTip";
 
 export function WelcomeForm({ handle, displayName, next }: { handle: string; displayName: string; next: string }) {
   const [state, action] = useActionState<FormState, FormData>(guard(completeOnboarding), {});
@@ -46,9 +47,14 @@ export function WelcomeForm({ handle, displayName, next }: { handle: string; dis
         {fe.displayName && <p className="mt-1 text-xs text-red-800">{fe.displayName[0]}</p>}
       </div>
       <div>
-        <label htmlFor="handle" className="mb-1 block text-sm font-semibold text-ink">
-          Handle
-        </label>
+        <div className="mb-1 flex items-center gap-1">
+          <label htmlFor="handle" className="text-sm font-semibold text-ink">
+            Handle
+          </label>
+          <InfoTip title="Your @handle" art="profile">
+            How people find and mention you, and the address of your profile. Your email is never shown to anyone else.
+          </InfoTip>
+        </div>
         <p id="handle-help" className="mb-2 text-xs text-faint">
           Your unique name on Then What, like @{value || "yourname"}. 3–24 letters, numbers, dots or underscores.
         </p>

@@ -4,6 +4,8 @@ import { getActivity, getDashboardStats, getRequests, getSettings } from "@/lib/
 import { Empty, SectionTitle, StatCard, limitLabel } from "@/components/dashboard/ui";
 import { ActivityList } from "@/components/dashboard/ActivityList";
 import { RequestCard } from "@/components/dashboard/RequestCard";
+import { PageTour } from "@/components/Tour";
+import { InfoTip } from "@/components/InfoTip";
 
 export default async function DashboardOverview() {
   const viewer = (await getViewer())!;
@@ -18,7 +20,8 @@ export default async function DashboardOverview() {
 
   return (
     <div className="space-y-9">
-      <section aria-labelledby="numbers">
+      <PageTour id="dashboard" />
+      <section aria-labelledby="numbers" data-tour="dash-stats">
         <h2 id="numbers" className="sr-only">
           Numbers
         </h2>
@@ -55,9 +58,14 @@ export default async function DashboardOverview() {
         </div>
       </section>
 
-      <section aria-labelledby="rules">
+      <section aria-labelledby="rules" data-tour="dash-rules">
         <SectionTitle action={isAdmin ? <Link href="/dashboard/settings" className="text-xs font-semibold">Change</Link> : undefined}>
-          <span id="rules">Site rules</span>
+          <span id="rules" className="inline-flex items-center gap-1">
+            Site rules
+            <InfoTip title="Site rules" art="branches">
+              The limits every story starts with. A single story can have its own, set from the Stories tab.
+            </InfoTip>
+          </span>
         </SectionTitle>
         <dl className="card grid grid-cols-2 gap-4 p-4 desk:grid-cols-4">
           <div>

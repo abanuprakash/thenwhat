@@ -6,6 +6,7 @@ import { SetupNotice } from "@/components/SetupNotice";
 import { VercelInsights } from "@/components/VercelInsights";
 import { ConnectionNotice } from "@/components/ConnectionNotice";
 import { Toaster } from "@/components/Toast";
+import { TourHost } from "@/components/Tour";
 import { isConfigured } from "@/lib/env";
 import { BRAND } from "@/lib/brand";
 import { getViewer } from "@/lib/queries";
@@ -38,6 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">{isConfigured ? children : <SetupNotice />}</main>
         <BottomNav role={viewer?.profile.role ?? null} handle={viewer?.profile.handle ?? null} />
         <Toaster />
+        {isConfigured && <TourHost role={viewer?.profile.role ?? "guest"} seen={viewer ? (viewer.profile.tours_seen ?? []) : null} />}
         {/* Production only: preview deployments share the same monthly allowance. */}
         {process.env.VERCEL_ENV === "production" && <VercelInsights />}
       </body>

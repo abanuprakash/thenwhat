@@ -2,7 +2,7 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { VIEWER_HEADER, decodeViewer } from "@/lib/viewer-header";
 import { createClient } from "@/lib/supabase/server";
-import { PROFILE_COLUMNS, type Entitlements, type FeedStory, type Line, type LineWithAuthor, type Plan, type Profile, type Story, type VoteValue } from "@/lib/types";
+import { PROFILE_COLUMNS, VIEWER_PROFILE_COLUMNS, type Entitlements, type FeedStory, type Line, type LineWithAuthor, type Plan, type Profile, type Story, type VoteValue } from "@/lib/types";
 
 export const BRANCH_PAGE = 5;
 
@@ -23,7 +23,7 @@ export const getViewer = cache(async (): Promise<Viewer> => {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
-  const { data: profile } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select(VIEWER_PROFILE_COLUMNS).eq("id", user.id).single();
   if (!profile) return null;
   return { id: user.id, email: user.email ?? null, profile: profile as Profile };
 });

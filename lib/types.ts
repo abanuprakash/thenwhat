@@ -13,10 +13,14 @@ export type Profile = {
   invited_by: string | null;
   created_at: string;
   onboarded: boolean;
+  /** Tours this person has seen ("reading@author"). Only loaded for the signed-in person. */
+  tours_seen?: string[];
 };
 
 /** Profile columns ordinary users may read (plan details are private). */
 export const PROFILE_COLUMNS = "id, handle, display_name, bio, avatar_url, role, invited_by, created_at, onboarded";
+/** Your own profile: the public columns plus the tours you've seen (signed-in only). */
+export const VIEWER_PROFILE_COLUMNS = `${PROFILE_COLUMNS}, tours_seen`;
 
 export type Story = {
   id: string;

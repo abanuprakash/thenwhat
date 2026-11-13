@@ -3,6 +3,7 @@ import type { Viewer } from "@/lib/queries";
 import { Avatar } from "@/components/Avatar";
 import { NavLink } from "@/components/NavLink";
 import { Logo } from "@/components/Logo";
+import { TourButton } from "@/components/Tour";
 
 export function Header({ viewer }: { viewer: Viewer }) {
   const role = viewer?.profile.role;
@@ -18,9 +19,10 @@ export function Header({ viewer }: { viewer: Viewer }) {
           <NavLink href="/pricing">Pricing</NavLink>
         </nav>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 desk:gap-4">
+        <TourButton />
         {isAuthor && (
-          <Link href="/new" className="btn-primary hidden !px-[14px] !py-2 !text-xs desk:inline-flex">
+          <Link href="/new" data-tour="start-story" className="btn-primary hidden !px-[14px] !py-2 !text-xs desk:inline-flex">
             + Start a story
           </Link>
         )}
@@ -29,12 +31,12 @@ export function Header({ viewer }: { viewer: Viewer }) {
             <span className={isAuthor ? "badge-gold hidden desk:inline-block" : "badge-muted hidden desk:inline-block"}>
               {role === "admin" ? "Admin" : isAuthor ? "Verified author" : "Reader"}
             </span>
-            <Link href={`/u/${viewer.profile.handle}`} aria-label="Your profile">
+            <Link href={`/u/${viewer.profile.handle}`} aria-label="Your profile" data-tour="your-profile">
               <Avatar url={viewer.profile.avatar_url} handle={viewer.profile.handle} />
             </Link>
           </>
         ) : (
-          <Link href="/login" className="btn-secondary">
+          <Link href="/login" className="btn-secondary" data-tour="sign-in">
             Sign in
           </Link>
         )}

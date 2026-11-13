@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { normalizeSupabaseUrl } from "@/lib/supabase-url";
-import { PROFILE_COLUMNS } from "@/lib/types";
+import { VIEWER_PROFILE_COLUMNS } from "@/lib/types";
 import { VIEWER_HEADER, encodeViewer } from "@/lib/viewer-header";
 
 // Pages only verified authors (or admins) may open.
@@ -126,7 +126,7 @@ export async function middleware(request: NextRequest) {
   if (!user) handOver(null);
 
   if (user) {
-    const { data: profile } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", user.id).single();
+    const { data: profile } = await supabase.from("profiles").select(VIEWER_PROFILE_COLUMNS).eq("id", user.id).single();
     handOver(profile ? { id: user.id, email: user.email ?? null, profile } : null);
 
     // First sign-in: choose a name and handle before anything else.

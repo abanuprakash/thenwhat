@@ -26,7 +26,7 @@ export function ProfileEditor({
   const fe = state.fieldErrors ?? {};
 
   return (
-    <section className="border-t border-black/[.08] pt-6">
+    <section className="border-t border-black/[.08] pt-6" data-tour="profile-edit">
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn-secondary" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="profile-editor">
           {open ? "Close" : "Edit profile"}

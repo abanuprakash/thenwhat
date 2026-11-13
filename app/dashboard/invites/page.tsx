@@ -3,6 +3,7 @@ import { getEntitlements, getMyInvites, getViewer, hasFeature } from "@/lib/quer
 import { Locked } from "@/components/Locked";
 import { InviteManager } from "@/components/InviteManager";
 import { env } from "@/lib/env";
+import { InfoTip } from "@/components/InfoTip";
 
 export const metadata: Metadata = { title: "Invites" };
 
@@ -18,8 +19,12 @@ export default async function InvitesPage() {
 
   return (
     <div className="max-w-[620px]">
-      <p className="mb-6 text-sm text-faint">
+      <p className="mb-6 flex items-center gap-1 text-sm text-faint">
         {isAdmin || slots === null ? "Your plan has unlimited invites." : `${Math.max(slots - used, 0)} of ${slots} invite slots available on your ${ent?.plan_name} plan`}
+        <InfoTip title="Invite slots" art="invite">
+          Each invite link works once. A link holds a slot while it&apos;s waiting and keeps it once someone joins; expired links
+          give the slot back.
+        </InfoTip>
       </p>
       <InviteManager
         siteUrl={env.siteUrl}

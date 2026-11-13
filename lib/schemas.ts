@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TOUR_IDS } from "@/lib/tours";
 import { GENRES } from "@/lib/types";
 import { cleanHandle, cleanText } from "@/lib/sanitize";
 
@@ -129,3 +130,9 @@ export const userPlanSchema = z.object({
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date.").nullable(),
   ),
 });
+
+/** A seen-tour key: "<tour>@<role>" (see lib/tours.ts). The database checks the same shape. */
+export const tourKeySchema = z
+  .string()
+  .regex(/^[a-z]{2,20}@(reader|author|admin)$/)
+  .refine((k) => (TOUR_IDS as readonly string[]).includes(k.split("@")[0]), "Unknown tour");

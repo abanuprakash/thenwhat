@@ -33,7 +33,7 @@ Leave `.env.local` open; you'll fill it in at step 4.
 
 ## 3. Create the database
 
-The whole database (tables, triggers, security rules and functions) lives in nine SQL files in `supabase/migrations/`. Pick one of these two ways to run them.
+The whole database (tables, triggers, security rules and functions) lives in ten SQL files in `supabase/migrations/`. Pick one of these two ways to run them.
 
 **Option A: paste into the SQL editor (easiest)**
 
@@ -47,6 +47,7 @@ The whole database (tables, triggers, security rules and functions) lives in nin
 8. Then `20261113000002_votes_dont_refresh_readers.sql`. Votes stop reloading open reading pages.
 9. Then `20261113000003_query_tuning.sql`. Faster access rules, new indexes and a stored trending score. It turns on **pg_cron** to refresh trending every 5 minutes; if it prints "pg_cron not available", enable pg_cron under **Database → Extensions** and run the last block of that file again.
 10. Then `20261113000004_live_updates_per_page.sql`. Open reading pages only reload when something they show changes.
+11. Then `20261113000005_tours.sql`. Remembers which guided tours each person has seen.
 
 Run them in that order. Each one builds on the one before.
 
