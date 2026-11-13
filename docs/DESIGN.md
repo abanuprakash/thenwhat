@@ -115,6 +115,7 @@ All in `app/globals.css` (`@layer components`) or `components/`.
 | `BotFields` | Hidden spam filters, in every public form. |
 | `Spark` | Writing nudges in the composer. |
 | `SubmitButton`, `BusyButton`, `NativeForm`, `Dots` (`components/Pending.tsx`) | Every button that sends something. The pressed button shows the "and then…" dots (with an optional word like "Saving"), every button in that form is disabled so nothing is sent twice, and the label keeps its width. `SubmitButton` goes inside forms (it reads the form's status); `NativeForm` wraps plain posts to a URL; `BusyButton` takes `busy` from `useTransition`. Votes and follows stay instant and simply ignore taps while saving. |
+| `ConfirmButton` (`components/Confirm.tsx`) | Decisions that need a second look: approve, reject, make inactive, reactivate, publish a story. A centred dialog on wide screens, a bottom sheet on phones (drag the handle down, tap outside or Esc to cancel). It always says **What happens** as a short list: gold + for what starts, muted − for what stops, a dot for good-to-know. Write outcomes from the person's side, in plain words, and only promise what the database actually does. Use `caution` when something is taken away (Cancel gets the focus). |
 | `FeedTabs` | The home feed tabs: gliding underline, dimmed list while loading, new list slides in from the side you moved towards. |
 
 **States every screen needs:**
@@ -144,6 +145,9 @@ Motion confirms what you did and helps you notice where things are. It never per
 | `animate-count` | A number changing |
 | `lift` / `press` | Hover lift and press settle on buttons and cards |
 | `skeleton` | Loading shimmer |
+| `confirm` / `confirm-panel` | Dialog fades and rises 10px (260ms); the phone sheet slides up (360ms) and follows your finger when dragged; outcomes arrive one after another |
+| `vote-nudge-up` / `vote-nudge-down` / `vote-ring` / `count-up` / `count-down` | Votes: the arrow nudges the way you voted with a soft ring, and the count rolls up from below or down from above |
+| `star-on` / `star-sparks` / `star-off` | Follow: the star turns one point (72°) with six tiny sparks; unfollow settles |
 | `dots` (via `Dots`) | Something is being sent: three dots rise one after another, "and then…" |
 | `feed-bar` / `feed-enter` | Feed tabs: the underline glides and breathes while loading; the new list slides in 18px from the side you moved towards |
 | `lm-draw` / `lm-pop` | The sign-in page's mark draws itself once: the question, then the branches, then the two dots |

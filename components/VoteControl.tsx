@@ -1,5 +1,5 @@
 "use client";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { vote } from "@/app/actions";
 import { formatNum } from "@/lib/format";
@@ -39,16 +39,23 @@ export function VoteControl({
   const [state, setOptimistic] = useOptimistic<State, VoteValue>({ up, down, mine }, apply);
   // The vote shows instantly; while it's being saved, further taps are ignored so nothing is sent twice.
   const [saving, start] = useTransition();
+  // If a save is ever cut off (a dropped connection), don't keep ignoring taps: the guard expires.
+  const sentAt = useRef(0);
   const [error, setError] = useState<string>();
   // Bumped on every click so the arrow and number replay their small animation.
   const [tick, setTick] = useState(0);
+  // What the last tap did, so the motion matches it: up nudges up, down nudges down, undo settles.
+  const [last, setLast] = useState<{ kind: "up" | "down" | "off"; dir: number }>({ kind: "off", dir: 0 });
   const router = useRouter();
 
   const cast = (value: VoteValue) => {
     if (!signedIn) return router.push(`/login?next=${encodeURIComponent(location.pathname)}`);
     if (!allowed) return setError("Voting isn't part of your plan. See Pricing.");
-    if (saving) return;
+    if (saving && Date.now() - sentAt.current < 8000) return;
+    sentAt.current = Date.now();
     setError(undefined);
+    const after = apply(state, value);
+    setLast({ kind: after.mine === 1 ? "up" : after.mine === -1 ? "down" : "off", dir: Math.sign(after.up - after.down - (state.up - state.down)) });
     setTick((t) => t + 1);
     start(async () => {
       setOptimistic(value);
@@ -59,7 +66,7 @@ export function VoteControl({
 
   const net = state.up - state.down;
   const btn = (active: boolean) =>
-    `press inline-block leading-none transition-colors duration-200 ${layout === "row" ? "text-[15px] p-1" : "text-[11px] px-1 py-[2px]"} ${active ? "text-gold" : "text-faint"} hover:text-gold`;
+    `press relative inline-block leading-none transition-colors duration-200 ${layout === "row" ? "text-[15px] p-1" : "text-[11px] px-1 py-[2px]"} ${active ? "text-gold" : "text-faint"} hover:text-gold`;
 
   return (
     <div
@@ -68,15 +75,23 @@ export function VoteControl({
       aria-busy={saving || undefined}
     >
       <button type="button" aria-label="Upvote" aria-pressed={state.mine === 1} className={btn(state.mine === 1)} onClick={() => cast(1)}>
-        <span key={state.mine === 1 ? `u${tick}` : "u"} className={`inline-block ${state.mine === 1 && tick ? "animate-pop" : ""}`}>
+        {tick > 0 && last.kind === "up" && <span key={`ru${tick}`} aria-hidden="true" className="vote-ring" />}
+        <span key={`u${tick}`} className={`inline-block ${tick && last.kind === "up" ? "vote-nudge-up" : tick && last.kind === "off" && state.mine === 0 ? "vote-settle" : ""}`}>
           ▲
         </span>
       </button>
-      <span key={net} className={`font-bold tabular-nums text-ink ${tick ? "animate-count" : ""} ${layout === "row" ? "text-[13px]" : "text-xs"}`} aria-live="polite">
-        {formatNum(net)}
+      {/* The count rolls the way it moved: up from below, down from above. */}
+      <span className={`vote-count relative inline-flex overflow-hidden ${layout === "row" ? "h-[18px]" : "h-[16px]"}`} aria-live="polite">
+        <span
+          key={net}
+          className={`font-bold tabular-nums text-ink ${tick && last.dir > 0 ? "count-up" : tick && last.dir < 0 ? "count-down" : ""} ${layout === "row" ? "text-[13px] leading-[18px]" : "text-xs leading-[16px]"}`}
+        >
+          {formatNum(net)}
+        </span>
       </span>
       <button type="button" aria-label="Downvote" aria-pressed={state.mine === -1} className={btn(state.mine === -1)} onClick={() => cast(-1)}>
-        <span key={state.mine === -1 ? `d${tick}` : "d"} className={`inline-block ${state.mine === -1 && tick ? "animate-pop" : ""}`}>
+        {tick > 0 && last.kind === "down" && <span key={`rd${tick}`} aria-hidden="true" className="vote-ring vote-ring-down" />}
+        <span key={`d${tick}`} className={`inline-block ${tick && last.kind === "down" ? "vote-nudge-down" : ""}`}>
           ▼
         </span>
       </button>

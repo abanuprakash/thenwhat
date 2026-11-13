@@ -171,7 +171,7 @@ export default async function ReadingPage({ params, searchParams }: Props) {
             {canMarkComplete && <MarkCompleteButton lineId={line.id} slug={slug} />}
             {canReviewHere && active && (line.status === "pending" || line.pending_text) && (
               <div className="mt-4 border-t border-black/[.06] pt-4">
-                <LineReview lineId={line.id} idPrefix="page" />
+                <LineReview lineId={line.id} writer={line.author?.handle} text={line.pending_text ?? line.text} isEdit={line.status === "published" && !!line.pending_text} idPrefix="page" />
               </div>
             )}
           </article>

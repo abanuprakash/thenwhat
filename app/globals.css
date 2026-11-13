@@ -130,6 +130,76 @@ button:disabled:not([data-busy]) { cursor: not-allowed; }
 .lm-draw { animation: sb-icon-draw 620ms var(--ease-out) var(--d, 120ms) backwards; }
 .lm-pop { transform-box: fill-box; transform-origin: center; animation: sb-icon-pop 360ms var(--ease-out) var(--d, 0ms) backwards; }
 
+/* ── Confirmations: a dialog on wide screens, a bottom sheet on phones ──────── */
+.confirm { padding: 0; border: 0; background: transparent; max-width: none; max-height: none; overflow: visible; color: inherit; }
+.confirm::backdrop { background: rgba(28, 26, 23, 0.42); animation: sb-fade var(--dur-base) var(--ease-out); }
+.confirm[data-closing]::backdrop { animation: sb-fade-out 200ms var(--ease-soft) forwards; }
+html:has(dialog.confirm[open]) { overflow: hidden; }
+.confirm-panel {
+  background: #FFFFFF; border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 24px 60px -24px rgba(60, 40, 10, 0.45);
+  padding: 22px 24px 22px;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.confirm-handle { display: none; }
+.confirm-item { animation: sb-count var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 50ms + 120ms); }
+@keyframes sb-fade-out { to { opacity: 0; } }
+@keyframes sb-dialog-in { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes sb-dialog-out { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
+@keyframes sb-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sb-sheet-out { to { transform: translateY(100%); } }
+@media (min-width: 761px) {
+  .confirm { margin: auto; width: min(460px, calc(100vw - 32px)); }
+  .confirm-panel { border-radius: 6px; animation: sb-dialog-in 260ms var(--ease-out); }
+  .confirm[data-closing] .confirm-panel { animation: sb-dialog-out 180ms var(--ease-soft) forwards; }
+}
+@media (max-width: 760px) {
+  .confirm { margin: auto 0 0; width: 100%; }
+  .confirm-panel {
+    border-radius: 16px 16px 0 0; border-bottom: 0; max-height: 88dvh; overflow-y: auto;
+    padding: 6px 20px max(18px, env(safe-area-inset-bottom));
+    animation: sb-sheet-in 360ms var(--ease-out);
+  }
+  .confirm[data-closing] .confirm-panel { animation: sb-sheet-out 240ms var(--ease-soft) forwards; }
+  /* The grab handle: drag down to dismiss. */
+  .confirm-handle { display: flex; justify-content: center; padding: 6px 0 12px; touch-action: none; cursor: grab; }
+  .confirm-handle span { width: 36px; height: 4px; border-radius: 9999px; background: #D9CBA0; }
+}
+
+/* ── Votes and follows: small, quick, and they match what you did ─────────── */
+/* Upvote nudges up, downvote nudges down, undo settles; a soft ring spreads behind the arrow once. */
+.vote-nudge-up { animation: sb-nudge-up 360ms var(--ease-out); }
+.vote-nudge-down { animation: sb-nudge-down 360ms var(--ease-out); }
+.vote-settle { animation: sb-settle 260ms var(--ease-soft); }
+@keyframes sb-nudge-up { 0% { transform: translateY(0) scale(1); } 35% { transform: translateY(-4px) scale(1.18); } 100% { transform: none; } }
+@keyframes sb-nudge-down { 0% { transform: translateY(0) scale(1); } 35% { transform: translateY(4px) scale(1.18); } 100% { transform: none; } }
+@keyframes sb-settle { 0% { transform: scale(0.82); } 100% { transform: none; } }
+.vote-ring {
+  position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border-radius: 9999px; border: 1.5px solid #D9A441; pointer-events: none;
+  animation: sb-ring 520ms var(--ease-out) both;
+}
+.vote-ring-down { border-color: #D9CBA0; }
+/* The count rolls: a higher number comes up from below, a lower one drops in from above. */
+.count-up { display: inline-block; animation: sb-roll-up 300ms var(--ease-out); }
+.count-down { display: inline-block; animation: sb-roll-down 300ms var(--ease-out); }
+@keyframes sb-roll-up { from { opacity: 0; transform: translateY(70%); } to { opacity: 1; transform: none; } }
+@keyframes sb-roll-down { from { opacity: 0; transform: translateY(-70%); } to { opacity: 1; transform: none; } }
+/* The follow star turns one point and pops; six sparks fly out once. Unfollow settles. */
+.star-on { animation: sb-star-on 460ms var(--ease-out); }
+.star-off { animation: sb-settle 260ms var(--ease-soft); }
+@keyframes sb-star-on { 0% { transform: scale(0.6) rotate(-72deg); } 60% { transform: scale(1.2) rotate(6deg); } 100% { transform: none; } }
+.star-sparks { position: absolute; inset: 0; pointer-events: none; }
+.star-sparks span {
+  position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px;
+  border-radius: 9999px; background: #D9A441; opacity: 0;
+  animation: sb-spark 520ms var(--ease-out) 60ms both;
+}
+@keyframes sb-spark {
+  0% { opacity: 1; transform: rotate(var(--a)) translateY(-4px) scale(1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(-14px) scale(0.4); }
+}
+
 /* ── Home feed tabs ─────────────────────────────────────────────────────── */
 .feed-tabs { scrollbar-width: none; }
 .feed-tabs::-webkit-scrollbar { display: none; }

@@ -6,7 +6,7 @@ import { BotFields } from "@/components/BotFields";
 import { GENRES, type Genre } from "@/lib/types";
 import { LINE_MAX } from "@/lib/schemas";
 import { CharCounter } from "@/components/CharCounter";
-import { SubmitButton } from "@/components/Pending";
+import { ConfirmButton } from "@/components/Confirm";
 
 export function NewStoryForm() {
   const [state, action] = useActionState<FormState, FormData>(createStory, {});
@@ -75,9 +75,21 @@ export function NewStoryForm() {
         />
         <div className="mt-[10px] flex items-center justify-between">
           <CharCounter length={len} id="opening-count" />
-          <SubmitButton className="btn-primary" disabled={!title.trim() || len === 0 || len > LINE_MAX} pendingLabel="Starting">
-            Begin the story
-          </SubmitButton>
+          <ConfirmButton
+            label="Begin the story"
+            disabled={!title.trim() || len === 0 || len > LINE_MAX}
+            eyebrow={`New ${genre} story`}
+            title={<>Publish “{title.trim()}”?</>}
+            preview={opening.trim()}
+            outcomes={[
+              { tone: "plus", text: "It goes live straight away with your opening line. Anyone can read it." },
+              { tone: "plus", text: "Invited writers can add the next lines and branch from any of them." },
+              { tone: "info", text: "You can edit the opening line until someone continues it. The title and genre stay as they are." },
+              { tone: "info", text: "You'll find it in your dashboard, with anything waiting for your decision." },
+            ]}
+            confirmLabel="Publish story"
+            pendingLabel="Publishing"
+          />
         </div>
         {(state.error || fe.firstLine) && (
           <p role="alert" className="mt-3 text-sm text-red-800">

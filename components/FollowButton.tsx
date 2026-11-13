@@ -1,5 +1,5 @@
 "use client";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleFollow } from "@/app/actions";
 
@@ -19,13 +19,16 @@ export function FollowButton({
   const [following, setFollowing] = useOptimistic(initial);
   // The star changes instantly; while it's being saved, further taps are ignored.
   const [saving, start] = useTransition();
+  // If a save is ever cut off (a dropped connection), don't keep ignoring taps: the guard expires.
+  const sentAt = useRef(0);
   const [tick, setTick] = useState(0);
   const router = useRouter();
 
   const onClick = () => {
     if (!signedIn) return router.push(`/login?next=${encodeURIComponent(location.pathname)}`);
     if (!allowed) return router.push("/pricing");
-    if (saving) return;
+    if (saving && Date.now() - sentAt.current < 8000) return;
+    sentAt.current = Date.now();
     setTick((t) => t + 1);
     start(async () => {
       setFollowing(!following);
@@ -36,14 +39,10 @@ export function FollowButton({
   if (variant === "button") {
     return (
       <button type="button" onClick={onClick} aria-pressed={following} aria-busy={saving || undefined} className="btn-secondary">
-        <span
-          key={`${following}${tick}`}
-          aria-hidden="true"
-          className={`inline-block transition-colors duration-200 ${following ? "text-gold" : "text-faint"} ${following && tick ? "animate-pop" : ""}`}
-        >
-          {following ? "★" : "☆"}
+        <Star following={following} tick={tick} />
+        <span key={`${following}`} className={tick ? "animate-fade" : ""}>
+          {following ? "Following" : "Follow story"}
         </span>
-        {following ? "Following" : "Follow story"}
       </button>
     );
   }
@@ -57,9 +56,31 @@ export function FollowButton({
       aria-label={following ? "Unfollow story" : "Follow story"}
       className={`press flex-none p-1 text-lg leading-none transition-colors duration-200 ${following ? "text-gold" : "text-[#A89C7E]"} hover:text-gold`}
     >
-      <span key={`${following}${tick}`} className={`inline-block ${following && tick ? "animate-pop" : ""}`}>
+      <Star following={following} tick={tick} />
+    </button>
+  );
+}
+
+/**
+ * The star. Following: it turns one point (72°) with a small pop and six tiny sparks fly out once.
+ * Unfollowing: it settles back, a little smaller for a moment. Colour comes from the button.
+ */
+function Star({ following, tick }: { following: boolean; tick: number }) {
+  return (
+    <span aria-hidden="true" className="relative inline-flex items-center justify-center">
+      {tick > 0 && following && (
+        <span key={`s${tick}`} className="star-sparks">
+          {[0, 60, 120, 180, 240, 300].map((a) => (
+            <span key={a} style={{ "--a": `${a}deg` } as React.CSSProperties} />
+          ))}
+        </span>
+      )}
+      <span
+        key={`${following}${tick}`}
+        className={`inline-block transition-colors duration-200 ${following ? "text-gold" : ""} ${tick ? (following ? "star-on" : "star-off") : ""}`}
+      >
         {following ? "★" : "☆"}
       </span>
-    </button>
+    </span>
   );
 }

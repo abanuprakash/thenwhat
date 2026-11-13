@@ -1,11 +1,12 @@
 "use client";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { setStoryLimits, setStoryModeration, setStoryStatus } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import type { StoryStatus } from "@/lib/types";
 import { SubmitButton } from "@/components/Pending";
+import { ConfirmButton } from "@/components/Confirm";
 
-/** Inactivate / reactivate with a confirmation step, and (admins) per-story limits. */
+/** Inactivate / reactivate (each confirmed in a dialog or bottom sheet), and per-story rules. */
 export function StoryActions({
   storyId,
   title,
@@ -16,6 +17,7 @@ export function StoryActions({
   maxBranches,
   maxDepth,
   idPrefix,
+  adminOverride = false,
 }: {
   storyId: string;
   title: string;
@@ -30,8 +32,9 @@ export function StoryActions({
   maxDepth: number | null;
   /** The page renders a phone and a desktop copy; this keeps their ids unique. */
   idPrefix: string;
+  /** An admin acting on someone else's story (only an admin can then reactivate it). */
+  adminOverride?: boolean;
 }) {
-  const [confirming, setConfirming] = useState(false);
   const [statusState, statusAction] = useActionState<FormState, FormData>(setStoryStatus, {});
   const [limitState, limitAction] = useActionState<FormState, FormData>(setStoryLimits, {});
   const [modState, modAction] = useActionState<FormState, FormData>(setStoryModeration, {});
@@ -40,54 +43,61 @@ export function StoryActions({
 
   return (
     <div className="space-y-2">
-      {!confirming ? (
-        <button
-          type="button"
-          className={next === "inactive" ? "btn-secondary" : "btn-outline-gold"}
-          onClick={() => setConfirming(true)}
-          aria-label={`${next === "inactive" ? "Make inactive" : "Reactivate"}: ${title}`}
-        >
-          {next === "inactive" ? "Make inactive" : "Reactivate"}
-        </button>
-      ) : (
-        <form
-          action={async (fd) => {
-            await statusAction(fd);
-            setConfirming(false);
-          }}
-          className="animate-reveal space-y-2 rounded-[3px] bg-sand p-3"
-        >
-          <input type="hidden" name="storyId" value={storyId} />
-          <input type="hidden" name="status" value={next} />
-          {next === "inactive" ? (
-            <>
-              <p className="text-xs text-muted">
-                Readers won&apos;t see “{title}” and nobody can add lines until it&apos;s reactivated.
-              </p>
-              <label htmlFor={id("reason")} className="eyebrow block">
-                Reason (optional, shown to the starter)
-              </label>
-              <input id={id("reason")} name="reason" maxLength={280} className="field !py-2 !text-sm" autoFocus />
-            </>
-          ) : (
-            <p className="text-xs text-muted">“{title}” will be visible and open for writing again.</p>
-          )}
-          <div className="flex gap-2">
-            <SubmitButton className="btn-primary !py-[7px] !text-xs">
-              {next === "inactive" ? "Yes, make inactive" : "Yes, reactivate"}
-            </SubmitButton>
-            <button type="button" className="btn-secondary" onClick={() => setConfirming(false)}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+      <form action={statusAction}>
+        <input type="hidden" name="storyId" value={storyId} />
+        <input type="hidden" name="status" value={next} />
+        {next === "inactive" ? (
+          <ConfirmButton
+            label="Make inactive"
+            className="btn-secondary"
+            ariaLabel={`Make inactive: ${title}`}
+            eyebrow="Story"
+            title="Make this story inactive?"
+            preview={title}
+            outcomes={[
+              { tone: "minus", text: "It leaves the feed, and readers can't open it." },
+              { tone: "minus", text: "Nobody can add, edit or vote on its lines." },
+              { tone: "info", text: "Nothing is deleted. Lines, votes and followers stay as they are." },
+              {
+                tone: "info",
+                text: adminOverride
+                  ? "Because an admin switched it off, only an admin can switch it back on."
+                  : "You can reactivate it whenever you like.",
+              },
+            ]}
+            confirmLabel="Make inactive"
+            pendingLabel="Saving"
+            caution
+          >
+            <label htmlFor={id("reason")} className="eyebrow block">
+              Reason (optional, shown to the story&apos;s starter)
+            </label>
+            <input id={id("reason")} name="reason" maxLength={280} className="field !py-2 !text-sm" />
+          </ConfirmButton>
+        ) : (
+          <ConfirmButton
+            label="Reactivate"
+            className="btn-outline-gold"
+            ariaLabel={`Reactivate: ${title}`}
+            eyebrow="Story"
+            title="Bring this story back?"
+            preview={title}
+            outcomes={[
+              { tone: "plus", text: "It's back in the feed and open to read." },
+              { tone: "plus", text: "Writers can add lines and readers can vote again, within the story's limits." },
+              { tone: "info", text: "Lines that were waiting for approval are still in the review queue." },
+            ]}
+            confirmLabel="Reactivate"
+            pendingLabel="Saving"
+          />
+        )}
+      </form>
       {statusState.error && (
         <p role="alert" className="text-xs text-red-800">
           {statusState.error}
         </p>
       )}
-      {statusState.ok && !confirming && (
+      {statusState.ok && (
         <p role="status" className="text-xs text-faint">
           {statusState.ok}
         </p>

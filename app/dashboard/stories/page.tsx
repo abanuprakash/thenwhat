@@ -126,6 +126,7 @@ export default async function StoriesPage({
                     maxBranches={s.max_branches_override}
                     maxDepth={s.max_depth_override}
                     idPrefix="m"
+                    adminOverride={isAdmin && s.author_id !== viewer.id}
                   />
                 </li>
               );
@@ -191,6 +192,7 @@ export default async function StoriesPage({
                           maxBranches={s.max_branches_override}
                           maxDepth={s.max_depth_override}
                           idPrefix="d"
+                          adminOverride={isAdmin && s.author_id !== viewer.id}
                         />
                       </td>
                     </tr>

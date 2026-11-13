@@ -86,7 +86,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
                   <p className="mb-3 font-serif text-[15px] leading-normal text-ink">{l.text}</p>
                 )}
                 {canDecide ? (
-                  <LineReview lineId={l.id} />
+                  <LineReview lineId={l.id} writer={l.author?.handle} text={isEdit ? (l.pending_text ?? l.text) : l.text} isEdit={isEdit} />
                 ) : (
                   <p className="text-xs text-faint">{isMine ? "Waiting for the story's starter or an admin." : "Waiting for an admin."}</p>
                 )}

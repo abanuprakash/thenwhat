@@ -4,12 +4,48 @@ import { cancelRequest } from "@/app/actions";
 import { decideRequest } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import type { RequestKind } from "@/lib/types";
-import { SubmitButton } from "@/components/Pending";
 import { BusyButton } from "@/components/Pending";
+import { ConfirmButton, type Outcome } from "@/components/Confirm";
 
-export function RequestDecision({ requestId, kind }: { requestId: string; kind: RequestKind }) {
+export function RequestDecision({
+  requestId,
+  kind,
+  requester,
+  storyTitle,
+}: {
+  requestId: string;
+  kind: RequestKind;
+  requester?: string | null;
+  storyTitle?: string | null;
+}) {
   const [state, action] = useActionState<FormState, FormData>(decideRequest, {});
   const id = (s: string) => `${s}-${requestId}`;
+  const Who = requester ? `@${requester}` : "The writer";
+  const story = storyTitle ? `“${storyTitle}”` : "this story";
+  const noteLine = (fd: FormData): Outcome[] =>
+    String(fd.get("note") ?? "").trim() ? [{ tone: "info", text: <>{Who} sees your note with the decision.</> }] : [];
+  const amount = (fd: FormData) => Math.min(Math.max(parseInt(String(fd.get("granted") ?? "1"), 10) || 1, 1), 20);
+
+  const approve = (fd: FormData): Outcome[] => {
+    const n = amount(fd);
+    return kind === "more_branches"
+      ? [
+          { tone: "plus", text: `This line can hold ${n} more ${n === 1 ? "branch" : "branches"}.` },
+          { tone: "info", text: "Every other line keeps the normal limit." },
+          { tone: "plus", text: <>{Who} can write the branch they asked for straight away.</> },
+          ...noteLine(fd),
+        ]
+      : [
+          { tone: "plus", text: <>Every path in {story} can go {n} more {n === 1 ? "line" : "lines"} deeper.</> },
+          { tone: "plus", text: <>{Who} and everyone else can continue past the old limit.</> },
+          ...noteLine(fd),
+        ];
+  };
+  const decline = (fd: FormData): Outcome[] => [
+    { tone: "minus", text: "Nothing changes: the limit stays where it is." },
+    { tone: "info", text: <>{Who} sees that the request was declined.</> },
+    ...noteLine(fd),
+  ];
 
   if (state.ok) {
     return (
@@ -52,12 +88,28 @@ export function RequestDecision({ requestId, kind }: { requestId: string; kind: 
           : "This raises the length limit for the whole story, so every path can go further."}
       </p>
       <div className="flex flex-wrap gap-2">
-        <SubmitButton name="approve" value="yes" className="btn-primary">
-          Approve
-        </SubmitButton>
-        <SubmitButton name="approve" value="no" className="btn-secondary">
-          Decline
-        </SubmitButton>
+        <ConfirmButton
+          label="Approve"
+          eyebrow={kind === "more_branches" ? "More branches on a line" : "A longer story"}
+          title={kind === "more_branches" ? "Give this line more room?" : "Let the story go further?"}
+          outcomes={approve}
+          confirmLabel="Approve"
+          pendingLabel="Approving"
+          name="approve"
+          value="yes"
+        />
+        <ConfirmButton
+          label="Decline"
+          className="btn-secondary"
+          eyebrow={kind === "more_branches" ? "More branches on a line" : "A longer story"}
+          title="Decline this request?"
+          outcomes={decline}
+          confirmLabel="Decline"
+          pendingLabel="Declining"
+          name="approve"
+          value="no"
+          caution
+        />
       </div>
       {(state.error || state.fieldErrors?.granted) && (
         <p role="alert" className="text-xs text-red-800">
