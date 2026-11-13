@@ -3,9 +3,10 @@ import { useActionState } from "react";
 import { adminSetRole } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import type { Role } from "@/lib/types";
+import { SubmitButton } from "@/components/Pending";
 
 export function RoleSelect({ handle, role, isSelf, idPrefix }: { handle: string; role: Role; isSelf: boolean; idPrefix: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(adminSetRole, {});
+  const [state, action] = useActionState<FormState, FormData>(adminSetRole, {});
   const id = `${idPrefix}-role-${handle}`;
   if (isSelf) return <span className="text-xs text-faint">You can&apos;t change your own role</span>;
   return (
@@ -19,9 +20,9 @@ export function RoleSelect({ handle, role, isSelf, idPrefix }: { handle: string;
         <option value="author">Verified author</option>
         <option value="admin">Admin</option>
       </select>
-      <button type="submit" className="btn-secondary !py-[6px]" disabled={pending}>
+      <SubmitButton className="btn-secondary !py-[6px]">
         Save
-      </button>
+      </SubmitButton>
       {state.ok && (
         <span role="status" className="w-full text-[11px] text-faint">
           {state.ok}

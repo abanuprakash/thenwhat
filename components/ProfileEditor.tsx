@@ -3,6 +3,7 @@ import { useActionState, useState } from "react";
 import { updateProfile } from "@/app/account-actions";
 import type { FormState } from "@/lib/action-utils";
 import { AvatarPicker } from "@/components/AvatarPicker";
+import { NativeForm, SubmitButton } from "@/components/Pending";
 
 export function ProfileEditor({
   handle,
@@ -18,7 +19,7 @@ export function ProfileEditor({
   hasGooglePhoto: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState<FormState, FormData>(updateProfile, {});
+  const [state, action] = useActionState<FormState, FormData>(updateProfile, {});
   const fe = state.fieldErrors ?? {};
 
   return (
@@ -27,11 +28,11 @@ export function ProfileEditor({
         <button type="button" className="btn-secondary" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="profile-editor">
           {open ? "Close" : "Edit profile"}
         </button>
-        <form action="/auth/signout" method="post">
-          <button type="submit" className="text-xs font-semibold text-faint hover:text-ink">
+        <NativeForm action="/auth/signout" method="post">
+          <SubmitButton className="text-xs font-semibold text-faint hover:text-ink" pendingLabel="Signing out">
             Sign out
-          </button>
-        </form>
+          </SubmitButton>
+        </NativeForm>
       </div>
 
       {open && (
@@ -54,9 +55,9 @@ export function ProfileEditor({
               <textarea id="bio" name="bio" defaultValue={bio} maxLength={280} className="field min-h-[90px]" />
             </div>
             <div className="flex items-center gap-3">
-              <button type="submit" className="btn-primary" disabled={pending}>
-                {pending ? "Saving…" : "Save profile"}
-              </button>
+              <SubmitButton className="btn-primary" pendingLabel="Saving">
+                Save profile
+              </SubmitButton>
               {state.ok && <span className="text-xs text-faint" role="status">{state.ok}</span>}
               {state.error && <span className="text-xs text-red-800" role="alert">{state.error}</span>}
             </div>

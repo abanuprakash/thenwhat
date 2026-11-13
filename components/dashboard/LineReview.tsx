@@ -2,10 +2,11 @@
 import { useActionState } from "react";
 import { reviewLine } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
+import { SubmitButton } from "@/components/Pending";
 
 /** Approve or reject a pending line (or a pending edit), with an optional note to the writer. */
 export function LineReview({ lineId, idPrefix = "r" }: { lineId: string; idPrefix?: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(reviewLine, {});
+  const [state, action] = useActionState<FormState, FormData>(reviewLine, {});
   const noteId = `${idPrefix}-note-${lineId}`;
   if (state.ok) {
     return (
@@ -22,12 +23,12 @@ export function LineReview({ lineId, idPrefix = "r" }: { lineId: string; idPrefi
       </label>
       <input id={noteId} name="note" maxLength={280} className="field !py-2 !text-sm" />
       <div className="flex flex-wrap gap-2">
-        <button type="submit" name="approve" value="yes" className="btn-primary" disabled={pending}>
+        <SubmitButton name="approve" value="yes" className="btn-primary">
           Approve
-        </button>
-        <button type="submit" name="approve" value="no" className="btn-secondary" disabled={pending}>
+        </SubmitButton>
+        <SubmitButton name="approve" value="no" className="btn-secondary">
           Don&apos;t publish
-        </button>
+        </SubmitButton>
       </div>
       {state.error && (
         <p role="alert" className="text-xs text-red-800">

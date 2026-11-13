@@ -2,6 +2,7 @@
 import { useActionState } from "react";
 import { adminSetPlan } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
+import { SubmitButton } from "@/components/Pending";
 
 export function UserPlanForm({
   handle,
@@ -16,7 +17,7 @@ export function UserPlanForm({
   plans: { id: string; name: string }[];
   idPrefix: string;
 }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(adminSetPlan, {});
+  const [state, action] = useActionState<FormState, FormData>(adminSetPlan, {});
   const id = (s: string) => `${idPrefix}-${s}-${handle}`;
   const today = new Date().toISOString().slice(0, 10);
   return (
@@ -44,9 +45,9 @@ export function UserPlanForm({
         title="Optional end date. Leave empty for no end."
         className="field !w-auto !py-[5px] !text-xs"
       />
-      <button type="submit" className="btn-secondary !py-[6px]" disabled={pending}>
+      <SubmitButton className="btn-secondary !py-[6px]">
         Save
-      </button>
+      </SubmitButton>
       {(state.ok || state.error || state.fieldErrors) && (
         <span role={state.ok ? "status" : "alert"} className={`w-full text-[11px] ${state.ok ? "text-faint" : "text-red-800"}`}>
           {state.ok ?? state.error ?? Object.values(state.fieldErrors ?? {}).flat()[0]}

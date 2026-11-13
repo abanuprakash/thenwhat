@@ -3,9 +3,10 @@ import { useActionState, useEffect, useState } from "react";
 import { checkHandle, completeOnboarding } from "@/app/account-actions";
 import type { FormState } from "@/lib/action-utils";
 import { BotFields } from "@/components/BotFields";
+import { SubmitButton } from "@/components/Pending";
 
 export function WelcomeForm({ handle, displayName, next }: { handle: string; displayName: string; next: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(completeOnboarding, {});
+  const [state, action] = useActionState<FormState, FormData>(completeOnboarding, {});
   const [value, setValue] = useState(handle);
   const [check, setCheck] = useState<{ available: boolean; message: string } | null>(null);
 
@@ -66,9 +67,9 @@ export function WelcomeForm({ handle, displayName, next }: { handle: string; dis
           {fe.handle?.[0] ?? check?.message ?? ""}
         </p>
       </div>
-      <button type="submit" className="btn-primary" disabled={pending || (check !== null && !check.available)}>
-        {pending ? "Saving…" : "Start reading"}
-      </button>
+      <SubmitButton className="btn-primary" disabled={(check !== null && !check.available)} pendingLabel="Saving">
+        Start reading
+      </SubmitButton>
       {state.error && (
         <p role="alert" className="text-sm text-red-800">
           {state.error}

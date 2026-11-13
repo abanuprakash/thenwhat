@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { acceptInvite } from "@/app/actions";
+import { BusyButton } from "@/components/Pending";
 
 export function AcceptInvite({ token }: { token: string }) {
   const [pending, start] = useTransition();
@@ -20,8 +21,8 @@ export function AcceptInvite({ token }: { token: string }) {
     );
   }
   return (
-    <button type="button" className="btn-primary" disabled={pending} onClick={() => start(async () => setResult(await acceptInvite(token)))}>
-      {pending ? "Accepting…" : "Accept invite"}
-    </button>
+    <BusyButton className="btn-primary" busy={pending} pendingLabel="Accepting" onClick={() => start(async () => setResult(await acceptInvite(token)))}>
+      Accept invite
+    </BusyButton>
   );
 }

@@ -37,7 +37,8 @@ export function VoteControl({
   layout?: "row" | "column";
 }) {
   const [state, setOptimistic] = useOptimistic<State, VoteValue>({ up, down, mine }, apply);
-  const [, start] = useTransition();
+  // The vote shows instantly; while it's being saved, further taps are ignored so nothing is sent twice.
+  const [saving, start] = useTransition();
   const [error, setError] = useState<string>();
   // Bumped on every click so the arrow and number replay their small animation.
   const [tick, setTick] = useState(0);
@@ -46,6 +47,7 @@ export function VoteControl({
   const cast = (value: VoteValue) => {
     if (!signedIn) return router.push(`/login?next=${encodeURIComponent(location.pathname)}`);
     if (!allowed) return setError("Voting isn't part of your plan. See Pricing.");
+    if (saving) return;
     setError(undefined);
     setTick((t) => t + 1);
     start(async () => {
@@ -63,6 +65,7 @@ export function VoteControl({
     <div
       className={`flex items-center ${layout === "row" ? "gap-[10px]" : "w-[38px] flex-col gap-[2px]"}`}
       title={error ?? `${state.up} up · ${state.down} down`}
+      aria-busy={saving || undefined}
     >
       <button type="button" aria-label="Upvote" aria-pressed={state.mine === 1} className={btn(state.mine === 1)} onClick={() => cast(1)}>
         <span key={state.mine === 1 ? `u${tick}` : "u"} className={`inline-block ${state.mine === 1 && tick ? "animate-pop" : ""}`}>

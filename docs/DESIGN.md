@@ -114,6 +114,8 @@ All in `app/globals.css` (`@layer components`) or `components/`.
 | `Skeletons` | Loading placeholders (`skeleton` class). |
 | `BotFields` | Hidden spam filters, in every public form. |
 | `Spark` | Writing nudges in the composer. |
+| `SubmitButton`, `BusyButton`, `NativeForm`, `Dots` (`components/Pending.tsx`) | Every button that sends something. The pressed button shows the "and then…" dots (with an optional word like "Saving"), every button in that form is disabled so nothing is sent twice, and the label keeps its width. `SubmitButton` goes inside forms (it reads the form's status); `NativeForm` wraps plain posts to a URL; `BusyButton` takes `busy` from `useTransition`. Votes and follows stay instant and simply ignore taps while saving. |
+| `FeedTabs` | The home feed tabs: gliding underline, dimmed list while loading, new list slides in from the side you moved towards. |
 
 **States every screen needs:**
 - **Empty:** say what will appear here, plus one action ("Tap the star on any story to follow it").
@@ -142,11 +144,14 @@ Motion confirms what you did and helps you notice where things are. It never per
 | `animate-count` | A number changing |
 | `lift` / `press` | Hover lift and press settle on buttons and cards |
 | `skeleton` | Loading shimmer |
+| `dots` (via `Dots`) | Something is being sent: three dots rise one after another, "and then…" |
+| `feed-bar` / `feed-enter` | Feed tabs: the underline glides and breathes while loading; the new list slides in 18px from the side you moved towards |
+| `lm-draw` / `lm-pop` | The sign-in page's mark draws itself once: the question, then the branches, then the two dots |
 | `nav-bar` / `nav-marker` / `nav-fab` | The mobile bottom nav only (`components/BottomNav.tsx`): the cream marker glides to the chosen tab the moment it's tapped, the bar tucks away while scrolling down and returns on scroll up or near the end, it steps aside while the keyboard is open, the Write button's plus turns a quarter on press and a single gold ring ripples out on arriving at the writing screen. Icons rebuild as their tab becomes active (`ic-draw` lines draw in, `ic-pop` parts land, then the fill settles, all under 600ms) and the tab you leave lets go with a small exhale (`sb-icon-letgo`) |
 
 Rules:
 - **Short:** nothing over 600ms except a one-time drawing (the path map).
-- **Never loop forever,** apart from the loading shimmer.
+- **Never loop forever,** apart from the loading shimmer, the `Dots` loader and the feed underline's breathing, which only run while something is on its way.
 - **Animate only `opacity` and `transform`** (plus colour transitions). No width, height or top/left.
 - **Reduced motion:** the global rule in `globals.css` lands everything instantly. Don't fight it with `!important`.
 - **Delight comes in small doses:** the "?" tilt, the path drawing itself, the star pop. One moment per interaction, at most.

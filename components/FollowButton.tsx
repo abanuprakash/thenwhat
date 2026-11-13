@@ -17,13 +17,15 @@ export function FollowButton({
   variant?: "star" | "button";
 }) {
   const [following, setFollowing] = useOptimistic(initial);
-  const [, start] = useTransition();
+  // The star changes instantly; while it's being saved, further taps are ignored.
+  const [saving, start] = useTransition();
   const [tick, setTick] = useState(0);
   const router = useRouter();
 
   const onClick = () => {
     if (!signedIn) return router.push(`/login?next=${encodeURIComponent(location.pathname)}`);
     if (!allowed) return router.push("/pricing");
+    if (saving) return;
     setTick((t) => t + 1);
     start(async () => {
       setFollowing(!following);
@@ -33,7 +35,7 @@ export function FollowButton({
 
   if (variant === "button") {
     return (
-      <button type="button" onClick={onClick} aria-pressed={following} className="btn-secondary">
+      <button type="button" onClick={onClick} aria-pressed={following} aria-busy={saving || undefined} className="btn-secondary">
         <span
           key={`${following}${tick}`}
           aria-hidden="true"
@@ -51,6 +53,7 @@ export function FollowButton({
       type="button"
       onClick={onClick}
       aria-pressed={following}
+      aria-busy={saving || undefined}
       aria-label={following ? "Unfollow story" : "Follow story"}
       className={`press flex-none p-1 text-lg leading-none transition-colors duration-200 ${following ? "text-gold" : "text-[#A89C7E]"} hover:text-gold`}
     >

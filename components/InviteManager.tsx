@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { createInvite } from "@/app/actions";
+import { BusyButton } from "@/components/Pending";
 
 type Invite = { token: string; invitee: string | null; status: "Joined" | "Pending" | "Expired"; expiresAt: string };
 
@@ -47,10 +48,10 @@ export function InviteManager({ siteUrl, canCreate, invites }: { siteUrl: string
             </button>
           )}
           {canCreate && (
-            <button
-              type="button"
+            <BusyButton
               className={latest ? "btn-secondary" : "btn-primary"}
-              disabled={pending}
+              busy={pending}
+              pendingLabel="Creating"
               onClick={() =>
                 start(async () => {
                   const res = await createInvite();
@@ -59,8 +60,8 @@ export function InviteManager({ siteUrl, canCreate, invites }: { siteUrl: string
                 })
               }
             >
-              {pending ? "Creating…" : "New invite link"}
-            </button>
+              New invite link
+            </BusyButton>
           )}
         </div>
         {error && <p role="alert" className="w-full text-xs text-red-800">{error}</p>}

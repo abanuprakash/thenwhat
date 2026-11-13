@@ -4,9 +4,10 @@ import { adminSavePlan } from "@/app/dashboard-actions";
 import type { FormState } from "@/lib/action-utils";
 import { FEATURE_INFO } from "@/lib/features";
 import type { Plan } from "@/lib/types";
+import { SubmitButton } from "@/components/Pending";
 
 export function PlanEditor({ plan, members }: { plan: Plan; members: number }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(adminSavePlan, {});
+  const [state, action] = useActionState<FormState, FormData>(adminSavePlan, {});
   const id = (s: string) => `${plan.id}-${s}`;
   const fe = state.fieldErrors ?? {};
 
@@ -82,9 +83,9 @@ export function PlanEditor({ plan, members }: { plan: Plan; members: number }) {
       </fieldset>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button type="submit" className="btn-primary" disabled={pending}>
-          {pending ? "Saving…" : `Save ${plan.name}`}
-        </button>
+        <SubmitButton className="btn-primary" pendingLabel="Saving">
+          {`Save ${plan.name}`}
+        </SubmitButton>
         {state.ok && <span role="status" className="text-xs text-faint">{state.ok}</span>}
         {state.error && <span role="alert" className="text-xs text-red-800">{state.error}</span>}
       </div>

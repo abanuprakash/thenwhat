@@ -5,9 +5,10 @@ import type { FormState } from "@/lib/action-utils";
 import { LINE_MAX } from "@/lib/schemas";
 import { CharCounter } from "@/components/CharCounter";
 import { BotFields } from "@/components/BotFields";
+import { SubmitButton } from "@/components/Pending";
 
 export function EditLineForm({ lineId, text: initial }: { lineId: string; text: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(editLine, {});
+  const [state, action] = useActionState<FormState, FormData>(editLine, {});
   const [text, setText] = useState(initial);
   const len = text.trim().length;
   if (state.ok) {
@@ -34,9 +35,9 @@ export function EditLineForm({ lineId, text: initial }: { lineId: string; text: 
       />
       <div className="mt-[10px] flex items-center justify-between">
         <CharCounter length={len} id="edit-count" />
-        <button type="submit" className="btn-primary" disabled={pending || len === 0 || len > LINE_MAX}>
-          {pending ? "Saving…" : "Save change"}
-        </button>
+        <SubmitButton className="btn-primary" disabled={len === 0 || len > LINE_MAX} pendingLabel="Saving">
+          Save change
+        </SubmitButton>
       </div>
       {(state.error || state.fieldErrors?.text) && (
         <p role="alert" className="mt-3 text-sm text-red-800">
