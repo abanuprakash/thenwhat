@@ -38,7 +38,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
-      { source: "/media/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=86400, immutable" }] },
+      // Every avatar upload gets a new file name, so a file never changes: cache it for a year.
+      { source: "/media/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     ];
   },
 };

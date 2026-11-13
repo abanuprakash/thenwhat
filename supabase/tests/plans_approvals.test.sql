@@ -246,3 +246,40 @@ do $$ begin
   assert (select version from public.stories where title = 'Root A') > 0, 'version bumps';
 end $$;
 select pg_temp.expect_fail($$ select public.check_rate_limit(repeat('k', 201), 1, 60) $$, 'oversized key');
+
+------------------------------------------------------------------ query tuning (20261113000003)
+-- Rules evaluate per-query values once.
+do $$ begin
+  assert not exists (
+    select 1 from pg_policies where schemaname = 'public'
+      and (coalesce(qual, '') ~ '(^|[^( ])auth\.uid\(\)' and coalesce(qual, '') !~ 'SELECT auth\.uid\(\)')
+  ), 'every auth.uid() in a rule is wrapped';
+  assert (select count(*) from pg_policies where schemaname = 'public' and (qual ~ 'story_visible' or with_check ~ 'story_visible')) = 0,
+    'reading lines no longer calls story_visible per row';
+end $$;
+
+-- The stored trending score follows votes and lines, and matches the formula.
+do $$ declare s record; begin
+  select * into s from public.stories where status = 'active' order by created_at limit 1;
+  assert abs(s.trending_score - public.trending_score(s.vote_count, s.line_count, s.created_at)) < 0.001, 'score stored';
+  update public.stories set vote_count = vote_count + 5 where id = s.id;
+  assert (select trending_score from public.stories where id = s.id) > s.trending_score, 'votes raise it at once';
+  update public.stories set trending_score = 0 where id = s.id;
+  perform public.refresh_trending();
+  assert (select trending_score from public.stories where id = s.id) > 0, 'refresh recomputes it';
+  assert (select trending_score from public.story_feed where id = s.id) > 0, 'the feed reads the stored score';
+end $$;
+
+------------------------------------------------------------------ live updates per page (20261113000004)
+do $$ declare l record; v0 bigint; v1 bigint; begin
+  select * into l from public.lines where status = 'published' and not hidden order by depth, created_at limit 1;
+  select version into v0 from public.story_poll(l.story_id, l.id);
+  update public.lines set up = up + 3 where id = l.id;
+  select version into v1 from public.story_poll(l.story_id, l.id);
+  assert v1 = v0, 'vote counters leave the page fingerprint alone';
+  update public.lines set is_complete = not is_complete where id = l.id;
+  select version into v1 from public.story_poll(l.story_id, l.id);
+  assert v1 <> v0, 'a visible change moves it';
+  assert (select version from public.story_poll(l.story_id)) is not null, 'story-wide counter still works';
+  assert not exists (select 1 from public.story_poll(l.story_id, '00000000-0000-0000-0000-000000000000')), 'a line from elsewhere gives nothing';
+end $$;

@@ -25,16 +25,22 @@ const sharedForASecond = {
  * - Public: it reads as a guest with no cookies, so a cached answer carries no one's session.
  *   The middleware skips this path (see its matcher).
  * - The counter moves when lines change (new, approved, edited, hidden), not on votes.
+ * - With ?line=<id> (the reading page sends it), the answer is a fingerprint of just what that
+ *   page shows (path, branches, mini tree), so changes elsewhere in the story don't reload it.
  * - The answer carries the current setting from Dashboard → Settings, so open pages
  *   slow down, speed up or stop as soon as an admin changes it:
  *     { v: 12, every: 1 }      check again in 1 second
  *     { v: 12, every: null }   live updates are off: stop checking
  */
-export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID.test(id)) return NextResponse.json({ error: "not found" }, { status: 404, headers: noStore });
   if (!(await limit("pollPerIp", await clientIp(), { asGuest: true }))) return NextResponse.json({ error: "slow down" }, { status: 429, headers: noStore });
-  const { data } = await createPublicClient().rpc("story_poll", { p_story: id }).maybeSingle();
+  const line = new URL(request.url).searchParams.get("line");
+  if (line !== null && !UUID.test(line)) return NextResponse.json({ error: "not found" }, { status: 404, headers: noStore });
+  const { data } = await createPublicClient()
+    .rpc("story_poll", line ? { p_story: id, p_line: line } : { p_story: id })
+    .maybeSingle();
   const row = data as Poll | null;
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404, headers: noStore });
   return NextResponse.json({ v: row.version, every: row.live_updates ? row.poll_seconds : null }, { headers: sharedForASecond });

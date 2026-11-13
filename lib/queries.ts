@@ -1,4 +1,6 @@
 import { cache } from "react";
+import { headers } from "next/headers";
+import { VIEWER_HEADER, decodeViewer } from "@/lib/viewer-header";
 import { createClient } from "@/lib/supabase/server";
 import { PROFILE_COLUMNS, type Entitlements, type FeedStory, type Line, type LineWithAuthor, type Plan, type Profile, type Story, type VoteValue } from "@/lib/types";
 
@@ -8,8 +10,14 @@ const LINE_WITH_AUTHOR = "*, author:profiles!lines_author_id_fkey(handle)";
 
 export type Viewer = { id: string; email: string | null; profile: Profile } | null;
 
-/** The signed-in user and their profile, once per request. */
+/**
+ * The signed-in user and their profile, once per request.
+ * Page loads use what the middleware already checked (lib/viewer-header.ts); Server Actions and
+ * anything the middleware skipped ask Supabase directly.
+ */
 export const getViewer = cache(async (): Promise<Viewer> => {
+  const handed = decodeViewer((await headers()).get(VIEWER_HEADER));
+  if (handed !== undefined) return handed ? { id: handed.id, email: handed.email, profile: handed.profile as Profile } : null;
   const supabase = await createClient();
   const {
     data: { user },
@@ -20,7 +28,6 @@ export const getViewer = cache(async (): Promise<Viewer> => {
   return { id: user.id, email: user.email ?? null, profile: profile as Profile };
 });
 
-/** Whether open stories check for new lines, and how often (Dashboard → Settings). Off if it can't be read. */
 export async function getLiveUpdates(): Promise<{ on: boolean; seconds: number }> {
   const supabase = await createClient();
   const { data } = await supabase.from("app_settings").select("live_updates, poll_seconds").maybeSingle();
@@ -38,8 +45,10 @@ export async function requireAdmin() {
 
 /** What the signed-in person's plan includes (admins: everything). */
 export const getEntitlements = cache(async (): Promise<Entitlements | null> => {
-  const viewer = await getViewer();
-  if (!viewer) return null;
+  // Page loads: the middleware already said whether anyone is signed in. Server Actions: ask the
+  // database directly (it knows who's calling) rather than looking the user up again, because
+  // React's per-request cache doesn't apply inside actions.
+  if (decodeViewer((await headers()).get(VIEWER_HEADER)) === null) return null;
   const supabase = await createClient();
   const { data } = await supabase.rpc("my_entitlements");
   return (data as Entitlements) ?? null;

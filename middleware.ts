@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { normalizeSupabaseUrl } from "@/lib/supabase-url";
+import { PROFILE_COLUMNS } from "@/lib/types";
+import { VIEWER_HEADER, encodeViewer } from "@/lib/viewer-header";
 
 // Pages only verified authors (or admins) may open.
 const AUTHOR_PATHS = ["/write", "/edit", "/new", "/invites", "/dashboard"];
@@ -25,8 +27,8 @@ function buildCsp(nonce: string, https: boolean, supabaseOrigin: string) {
   return [
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
-    `font-src 'self' https://fonts.gstatic.com`,
+    `style-src 'self' 'unsafe-inline'`,
+    `font-src 'self'`,
     `img-src 'self' data: blob: https://lh3.googleusercontent.com`,
     `connect-src 'self'${turnstile ? ` ${TURNSTILE}` : ""}`,
     `frame-src ${turnstile ? TURNSTILE : "'none'"}`,
@@ -62,6 +64,7 @@ export async function middleware(request: NextRequest) {
   const nonce = btoa(crypto.randomUUID());
   const csp = buildCsp(nonce, request.nextUrl.protocol === "https:", url);
   const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete(VIEWER_HEADER); // only this middleware may set it
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
 
@@ -110,8 +113,21 @@ export async function middleware(request: NextRequest) {
     return redirect(login);
   }
 
+  // Page loads and prefetches: pass who this is to the page, so it doesn't check again.
+  const passViewer = request.method === "GET" || request.method === "HEAD";
+  const handOver = (viewer: Parameters<typeof encodeViewer>[0]) => {
+    if (!passViewer) return;
+    requestHeaders.set(VIEWER_HEADER, encodeViewer(viewer));
+    const fresh = next(); // the request headers are captured when the response is created
+    response.cookies.getAll().forEach((c) => fresh.cookies.set(c));
+    response = fresh;
+  };
+
+  if (!user) handOver(null);
+
   if (user) {
-    const { data: profile } = await supabase.from("profiles").select("role, onboarded").eq("id", user.id).single();
+    const { data: profile } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", user.id).single();
+    handOver(profile ? { id: user.id, email: user.email ?? null, profile } : null);
 
     // First sign-in: choose a name and handle before anything else.
     if (profile && !profile.onboarded && !startsWithAny(path, ONBOARDING_EXEMPT)) {

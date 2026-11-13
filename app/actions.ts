@@ -51,7 +51,8 @@ export async function vote(lineId: string, value: VoteValue): Promise<{ error?: 
           .upsert({ user_id: viewer.id, line_id: parsed.data.lineId, value: parsed.data.value }, { onConflict: "user_id,line_id" });
 
   if (result.error) return { error: friendly(result.error) };
-  revalidatePath("/s/[slug]/[lineId]", "page");
+  // No revalidatePath: the button already shows the result, and redrawing the page cost ~50 calls
+  // (the page itself, then every prefetched link again). The next page load shows fresh counts.
   return {};
 }
 
@@ -68,7 +69,8 @@ export async function toggleFollow(storyId: string, follow: boolean): Promise<{ 
     ? await supabase.from("follows").upsert({ user_id: viewer.id, story_id: storyId }, { ignoreDuplicates: true })
     : await supabase.from("follows").delete().eq("user_id", viewer.id).eq("story_id", storyId);
   if (error) return { error: friendly(error) };
-  revalidatePath("/");
+  // No revalidatePath: the star already shows it, and pages here are never served from a cache,
+  // so the Following tab is fresh on the next visit.
   return {};
 }
 

@@ -31,7 +31,8 @@ export function VercelInsights() {
   return (
     <>
       <Analytics beforeSend={scrub} />
-      <SpeedInsights beforeSend={scrub} />
+      {/* A sample is enough for Core Web Vitals, and Hobby allows 10,000 data points a month. */}
+      <SpeedInsights beforeSend={scrub} sampleRate={0.25} />
     </>
   );
 }
