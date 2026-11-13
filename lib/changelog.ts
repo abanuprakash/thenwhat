@@ -19,6 +19,7 @@ export const RELEASES: Release[] = [
       "Replay any tour from the ? at the top of the page, or from the Tours panel on your profile.",
       "Little (i) tips explain karma, limits, how branches are ranked and every setting.",
       "A footer, with this changelog, our story, the privacy policy and the house rules.",
+      "A guide to every feature, with pictures and short clips, linked from the footer and your profile.",
     ],
   },
   {

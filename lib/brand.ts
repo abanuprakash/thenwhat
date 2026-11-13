@@ -39,7 +39,7 @@ export const PAGE_TURNS = ["Turning the page…", "Finding where we left off…"
 
 /** Who runs Then What, for the footer, About, Privacy and Terms. */
 export const OPERATOR = {
-  by: "Vimalan and his team",
+  by: "Vimalan & Team",
   city: "Chennai",
   /** The places the footer fades between: "Made in India", "Made in Tamil Nadu". */
   madeIn: ["India", "Tamil Nadu"],

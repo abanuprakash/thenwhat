@@ -75,6 +75,9 @@ export function ToursPanel({ tours }: { tours: { id: TourId; href: string | null
         <BusyButton busy={busy} onClick={reset} className="btn-outline-gold !py-[7px] !text-xs">
           Show all tours again
         </BusyButton>
+        <IntentLink href="/guide" className="text-xs font-semibold">
+          Read the full guide
+        </IntentLink>
         {note && (
           <p role={note.ok ? "status" : "alert"} className={`text-xs ${note.ok ? "text-muted" : "text-red-800"}`}>
             {note.text}

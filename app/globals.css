@@ -350,15 +350,44 @@ html:has(dialog.confirm[open]) { overflow: hidden; }
 }
 .story-path > li:first-child .story-node, .story-node[data-now] { background: #8C600A; border-color: #8C600A; }
 
-/* Footer: "Made in India" and "Made in Tamil Nadu" take turns, fading. Paused for reduced motion
-   (both are shown instead). An exception to "never loop forever", asked for by Banu. */
-.made-in { display: inline-grid; }
-.made-in > span { grid-area: 1 / 1; animation: made-in 7s var(--ease-out) infinite; }
-.made-in > span:nth-child(2) { animation-delay: -3.5s; }
+/* Footer: set in ink, with a gold thread along the top (the story path, ending here). */
+.site-footer { position: relative; }
+.site-footer::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, rgba(217, 164, 65, 0), #D9A441 18%, #D9A441 82%, rgba(217, 164, 65, 0));
+}
+.site-footer :focus-visible { outline-color: #D9A441; }
+
+/* "Made in India" and "Made in Tamil Nadu" take turns. Each name rolls up into a small window
+   (out of a soft blur), a gold underline draws beneath it while it holds, then it rolls on up
+   as the next one arrives. Transform, opacity and a light blur only. With reduced motion, both
+   names simply sit side by side. An exception to "never loop forever", asked for by Banu. */
+.made-in {
+  display: inline-grid; vertical-align: bottom; overflow: hidden;
+  padding: 0 2px 3px; margin: 0 -2px -3px; /* room for descenders and the underline */
+}
+.made-in > span {
+  grid-area: 1 / 1; position: relative; justify-self: start;
+  opacity: 0; transform: translateY(85%);
+  animation: made-in 8s infinite;
+}
+.made-in > span:nth-child(2) { animation-delay: -4s; }
+.made-in > span::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1.5px; border-radius: 2px;
+  background: currentColor; transform: scaleX(0); transform-origin: left;
+  animation: made-in-line 8s infinite; animation-delay: inherit;
+}
 @keyframes made-in {
-  0%, 8% { opacity: 0; transform: translateY(4px); }
-  14%, 44% { opacity: 1; transform: none; }
-  50%, 100% { opacity: 0; transform: translateY(-4px); }
+  0% { opacity: 0; transform: translateY(85%); filter: blur(3px); animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1.15); }
+  8% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  45% { opacity: 1; transform: translateY(0); filter: blur(0); animation-timing-function: cubic-bezier(0.55, 0, 0.75, 0.3); }
+  52%, 100% { opacity: 0; transform: translateY(-85%); filter: blur(3px); }
+}
+@keyframes made-in-line {
+  0%, 9% { transform: scaleX(0); transform-origin: left; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  20%, 38% { transform: scaleX(1); transform-origin: left; }
+  38.01% { transform-origin: right; animation-timing-function: cubic-bezier(0.55, 0, 0.75, 0.3); }
+  45%, 100% { transform: scaleX(0); transform-origin: right; }
 }
 .made-in-still { display: none; }
 @media (prefers-reduced-motion: reduce) {
@@ -369,3 +398,27 @@ html:has(dialog.confirm[open]) { overflow: hidden; }
 .story-facts ul > li { position: relative; padding-left: 18px; }
 .story-facts ul > li::before { content: ""; position: absolute; left: 3px; top: 0.62em; width: 6px; height: 6px; border-radius: 9999px; background: #D9C48A; }
 .story-facts a { font-weight: 600; }
+
+/* ── The guide (/guide): screenshots, clips and tables inside story chapters ── */
+.guide-steps { list-style: decimal; padding-left: 20px; display: grid; gap: 8px; }
+.guide-steps > li::marker { color: #8C600A; font-weight: 600; }
+.guide-fig { margin: 22px 0; }
+.guide-fig figcaption { margin-top: 10px; font-size: 12.5px; line-height: 1.5; color: #736A5D; text-align: center; }
+.guide-shot {
+  display: block; width: 100%; height: auto; border-radius: 8px; background: #FFFDF8;
+  border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 10px 30px rgba(28, 26, 23, 0.12);
+}
+.guide-fig.phone { max-width: 260px; margin-left: auto; margin-right: auto; }
+.guide-fig.phone .guide-shot { border: 7px solid #1C1A17; border-radius: 26px; }
+.guide-pair { display: grid; gap: 20px; align-items: start; }
+.guide-pair .guide-fig { margin: 0; }
+@media (min-width: 820px) { .guide-pair { grid-template-columns: minmax(0, 1fr) 220px; margin: 22px 0; } }
+.guide-table { overflow-x: auto; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 6px; background: #FFFDF8; }
+.guide-table table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.45; }
+.guide-table th, .guide-table td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
+.guide-table thead th { background: #F1ECE1; color: #1C1A17; font-weight: 600; }
+.guide-table tbody th { color: #1C1A17; font-weight: 500; }
+.guide-table tr:last-child > * { border-bottom: 0; }
+.guide-cards { list-style: none; padding: 0; font-size: 13px; line-height: 1.45; }
+.story-facts .guide-cards > li { padding-left: 16px; }
+.story-facts .guide-cards > li::before { display: none; }

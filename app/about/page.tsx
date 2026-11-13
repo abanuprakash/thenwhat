@@ -86,7 +86,12 @@ export default function AboutPage() {
           </p>
         </Chapter>
 
-        <Chapter n={6} title="And now, you" line="This is the part of the story where you come in." />
+        <Chapter n={6} title="And now, you" line="This is the part of the story where you come in.">
+          <p>
+            Want the whole tour first? <Link href="/guide">Every feature, explained</Link> walks through everything you can do here,
+            with pictures.
+          </p>
+        </Chapter>
       </Chapters>
 
       <TheEnd>
