@@ -53,6 +53,7 @@ Then What (formerly StoryBranch) is a collaborative storytelling site:
 | 12 Nov | **Name: Then What.** Tagline *You decide what happens next.* The voice uses the question ("Then what?", "And then…", "Your turn", the Spark button) | Chosen over And Then, Your Turn and What Next. Forkline was taken on Product Hunt; Kathai is close to existing Katha apps |
 | 13 Nov | **First users sign in with Google only** (`EMAIL_SIGNIN=off`). Resend plus a custom domain come before the wider launch | Supabase's built-in sender only emails team members, 2 an hour. `vercel.app` can't be verified in Resend |
 | 13 Nov | **Code moved to GitHub** (`abanuprakash/thenwhat`). Changes go on branches as pull requests | Banu gave Claude repo access so he no longer applies changes by hand |
+| 13 Nov | **Vercel Web Analytics** (`@vercel/analytics`, `components/VercelAnalytics.tsx`). Cookieless page views; `/auth/*` is never sent, invite paths become `/invite/:token`, and query strings and fragments are dropped. Middleware skips `/_vercel/*` | Banu wanted traffic numbers; the scrubbing keeps login codes, invite tokens and `?next=` values out of a third-party dashboard. Mention it in the privacy policy |
 | 13 Nov | **Claude Code kit** added: CLAUDE.md, the design guide, skills, workflows, reviewer agents and a hook protecting committed migrations | To keep working with Claude in VS Code |
 
 ## Open items and what's next
