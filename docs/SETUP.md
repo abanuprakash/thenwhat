@@ -190,6 +190,45 @@ BASE_URL=https://<your-app>.vercel.app npm run test:e2e
 
 That works out to $0 while you build and about $45 a month at launch, which matches the plan.
 
+## 11. Backups
+
+The free Supabase plan keeps no backups you can restore, so a GitHub workflow makes one every night (`.github/workflows/db-backup.yml`).
+
+**What's in it:** roles, the whole schema (tables, functions, access rules) and all data, including sign-in accounts. Profile photos are not: they live in Storage, not the database. Losing them isn't serious (people upload again); to keep them too, download the `avatars` bucket from Supabase → Storage now and then.
+
+**Set it up once.** In GitHub: **Settings** → **Secrets and variables** → **Actions** → **New repository secret**:
+
+- `SUPABASE_DB_URL`: in Supabase, press **Connect** and copy the **Session pooler** string (`postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres`), with your database password in it. Not the direct `db.<ref>.supabase.co` one: GitHub's runners can't reach it (it needs IPv6).
+- `BACKUP_PASSPHRASE`: a long random passphrase (16+ characters). **Save a copy in your password manager first.** Without it the backups can't be opened, and GitHub never shows a secret again.
+
+Then open **Actions** → **Database backup** → **Run workflow** to make the first one and check it works.
+
+**Where the backups are:** Actions → Database backup → any run → **Artifacts** at the bottom, as `thenwhat-db-<n>`. Each is kept 30 days. The repo is public, so anyone signed in to GitHub can download them; that's why each one is encrypted (AES-256) on the runner before it's stored.
+
+**Before a migration**, press **Run workflow** first, so there's a backup from just before the change.
+
+**From your own computer** (needs the Supabase CLI and Docker):
+
+```bash
+SUPABASE_DB_URL='…' BACKUP_PASSPHRASE='…' bash scripts/db-backup.sh
+```
+
+It saves `backups/thenwhat-db-<time>.tar.gz.gpg` (the folder is git-ignored).
+
+**Restore** into a new, empty Supabase project:
+
+```bash
+unzip thenwhat-db-<n>.zip                         # the artifact download
+gpg --decrypt thenwhat-db-*.tar.gz.gpg | tar xz   # asks for the passphrase; gives roles.sql, schema.sql, data.sql
+psql "$NEW_DB_URL" -f roles.sql -f schema.sql -f data.sql
+```
+
+Then point `SUPABASE_URL` and `SUPABASE_ANON_KEY` (in Vercel) at the new project, and add the sign-in redirect URLs again (step 8).
+
+**Good to know:**
+- GitHub pauses scheduled workflows in a public repo after 60 days without a commit. It emails you first; re-enable it under Actions.
+- Supabase Pro ($25/month) adds daily backups kept 7 days, restored with one click. Keep this workflow anyway: it's a copy outside Supabase.
+
 ---
 
 ## Troubleshooting

@@ -65,6 +65,7 @@ Then What (formerly StoryBranch) is a collaborative storytelling site:
 | 13 Nov | **Cheaper live updates and lighter prefetching.** (1) The check `/api/stories/<id>/version` is public: it reads as a guest with no cookies, is skipped by the middleware, and is shared for 1 s at Vercel's CDN (`Vercel-CDN-Cache-Control: max-age=1`), so everyone reading a story shares one answer. (2) Votes no longer bump `stories.version`; only line changes do, so a vote doesn't reload every open reader's page. (3) List links (feed, path, branches, mini tree, profile and dashboard lists) use `IntentLink`: no prefetch on scroll, prefetch on hover, focus or touch. Navigation keeps normal prefetching | Measured on production builds, signed in, per page view (master → now): prefetches Home 18→12, Story 22→16, Dashboard 38→30, Profile 25→8; data calls Home 45→33, Story 79→53, Dashboard 88→68, Profile 79→27. Each check: 2→1 function runs, 4→2 data calls, and on Vercel most checks become CDN hits. Readers see other people's votes on their next reload or the next new line |
 | 13 Nov | **Live updates are a site setting.** Dashboard → Settings → Live updates: on/off and how often (1–300 s), stored in `app_settings` and changed with `update_settings`. Only the reading page checks, only while its tab is visible, never two at once; each answer carries the current setting, so open pages speed up, slow down or stop without reloading. Starts **on, every 1 s** (Banu's call). Poll rate limit raised to 600 a minute per IP | Banu wants to tune freshness against cost from the dashboard. At 1 s each open story costs about 7,200 function runs an hour (check + middleware), so Vercel's free plan covers roughly 139 reader-hours a month before anything else; raise the interval if usage climbs |
 | 13 Nov | **Claude Code kit** added: CLAUDE.md, the design guide, skills, workflows, reviewer agents and a hook protecting committed migrations | To keep working with Claude in VS Code |
+| 18 Nov | **Nightly database backups.** A GitHub workflow dumps roles, schema and data with the Supabase CLI (pinned 3.2.0), encrypts them with AES-256 using a passphrase only Banu holds, and keeps each as a 30-day artifact. Encrypted because the repo is public; the dump is never committed. Profile photos are not included. Tested end to end: backup, wrong passphrase refused, restore with 0 errors | Free Supabase keeps no restorable backups; a copy outside Supabase is worth keeping even on Pro |
 
 ## Open items and what's next
 
@@ -72,6 +73,7 @@ Then What (formerly StoryBranch) is a collaborative storytelling site:
 - [ ] Buy a domain (thenwhat.in or thenwhat.app if free; check app stores and trademarks), set up Resend, remove `EMAIL_SIGNIN=off`.
 - [ ] Privacy policy, terms, and export/delete-my-account (India's DPDP Act).
 - [ ] Two-factor sign-in for admins (Supabase MFA).
+- [x] Nightly encrypted database backups (GitHub workflow; add the two secrets, see SETUP.md §11).
 - [ ] Supabase Pro (no pausing, daily backups).
 - [ ] Cloudflare Turnstile on sign-in (setup step 10b).
 

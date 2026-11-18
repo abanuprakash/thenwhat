@@ -1,0 +1,67 @@
+# Nightly database backup, encrypted, kept for 30 days as a workflow artifact.
+#
+# Setup (once): Settings → Secrets and variables → Actions → New repository secret
+#   SUPABASE_DB_URL     Supabase → Connect → Session pooler connection string (with the password filled in)
+#   BACKUP_PASSPHRASE   a long random passphrase (16+ characters). Keep a copy in your password manager:
+#                       without it the backups can't be opened, and GitHub won't show it again.
+#
+# This repo is public, so anyone signed in to GitHub can download its artifacts. That's why the
+# backup is encrypted before it leaves the runner; the plain dump never does.
+# To restore, see docs/SETUP.md → Backups.
+name: Database backup
+
+on:
+  schedule:
+    - cron: "47 20 * * *" # 02:17 India time, every night
+  workflow_dispatch: # "Run workflow" button, e.g. before a migration
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check the secrets are set
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::Add the SUPABASE_DB_URL and BACKUP_PASSPHRASE repository secrets (see the top of this file)."
+            exit 1
+          fi
+          # GitHub hides each secret as a whole; also hide the password on its own, in case a tool prints part of the URL.
+          # (Both forms: as written in the URL, and decoded if it has %-escaped characters.)
+          python3 - "$SUPABASE_DB_URL" <<'PY'
+          import sys, urllib.parse
+          raw = urllib.parse.urlsplit(sys.argv[1]).password or ""
+          for p in {raw, urllib.parse.unquote(raw)} - {""}:
+              print(f"::add-mask::{p}")
+          PY
+
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/db-backup.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.2.0
+
+      - name: Back up and encrypt
+        run: bash scripts/db-backup.sh backups
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: thenwhat-db-${{ github.run_number }}
+          path: backups/*.gpg
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0 # already compressed and encrypted
